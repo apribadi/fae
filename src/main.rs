@@ -1,4 +1,3 @@
-
 fn main() {
-    fae::token::go();
+    fae::lex::go();
 }
