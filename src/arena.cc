@@ -1,4 +1,5 @@
 namespace arena {
+  // 2MB
   constexpr size_t CHUNK_ALIGNMENT = 1 << 21;
   constexpr size_t CHUNK_CAPACITY_INCREMENT = 1 << 21;
 
@@ -55,11 +56,12 @@ namespace arena {
       }
 
       void clear() {
+        // If we have any allocated chunks, we reset the most recently
+        // allocated chunk and deallocate the other chunks.
+
+        mark = capacity;
         for (void * p : full_chunks) ::operator delete(p);
         full_chunks.clear();
-
-        // We leave the current chunk, if it is allocated.
-        mark = capacity;
       }
   };
 }
