@@ -11,9 +11,23 @@
 #include "arena.cc"
 #include "io.cc"
 
+class pair {
+public:
+  i64 x;
+  i64 y;
+
+  pair(i64 a, i64 b) : x(a), y(b) {}
+  void print() { printf("x = %d, y = %d\n", (int) x, (int) y); }
+};
+
 __attribute__ ((noinline))
-i64 * foo(arena::t& arena) {
-  return arena.make<i64>(13);
+pair * foo(arena::t& arena, i64 x, i64 y) {
+  return arena.make<pair>(x, y);
+}
+
+__attribute__ ((noinline))
+span<pair> bar(arena::t& arena, i64 n, i64 x, i64 y) {
+  return arena.make_span<pair>(n, x, y);
 }
 
 int main(int argc, char ** argv) {
@@ -33,15 +47,20 @@ int main(int argc, char ** argv) {
 
   arena::t arena;
 
-  i64 * p = foo(arena);
+  auto p = foo(arena, -3, -4);
+  auto q = bar(arena, 3, -13, -14);
+
+  // array<i64, n> * q = arena.make<array<i64, n>>();
 
   (void) p;
+  (void) q;
 
   // auto q = arena.make<arena::t>();
   // (void) q;
 
   printf("Hello, world!\n");
-  printf("value: %d\n", (int) * p);
+  p->print();
+  for (pair x : q) x.print();
 
   return 0;
 }
