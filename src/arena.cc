@@ -1,7 +1,5 @@
 namespace arena {
-  // TODO: take allocator as a parameter
-  // TODO: allocate array
-  // TODO: allocate span
+  // TODO: take parent allocator as a parameter
 
   // 2MB
   constexpr size_t CHUNK_ALIGNMENT = 1 << 21;
@@ -27,8 +25,8 @@ namespace arena {
 
       void * allocate_slow(size_t size, size_t align) {
         size_t new_capacity = capacity + CHUNK_CAPACITY_INCREMENT;
-        void * new_chunk = ::operator new(new_capacity, static_cast<align_val_t>(CHUNK_ALIGNMENT));
         void * old_chunk = chunk;
+        void * new_chunk = ::operator new(new_capacity, static_cast<align_val_t>(CHUNK_ALIGNMENT));
 
         capacity = new_capacity;
         mark = new_capacity;
@@ -64,7 +62,7 @@ namespace arena {
         if (n == 0) return nullptr;
 
         T * p = static_cast<T *>(allocate(n * sizeof(T), alignof(T)));
-        for (size_t i = 0; i < n; ++ i) new (&p[i]) T(forward<A>(a) ...);
+        for (size_t i = 0; i < n; ++ i) new (p + i) T(forward<A>(a) ...);
 
         return p;
       }
@@ -80,8 +78,8 @@ namespace arena {
       }
 
       void clear() {
-        // If we have any allocated chunks, we reset the most recently
-        // allocated chunk and deallocate the other chunks.
+        // If we have any allocated chunks, we reset and keep the most recently
+        // allocated chunk but deallocate the other chunks.
 
         mark = capacity;
         for (void * p : full_chunks) ::operator delete(p);
