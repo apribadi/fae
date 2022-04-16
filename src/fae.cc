@@ -26,29 +26,26 @@ pair * foo(arena::t& arena, i64 x, i64 y) {
 }
 
 __attribute__ ((noinline))
-span<pair> bar(arena::t& arena, i64 n, i64 x, i64 y) {
+span<pair> bar(arena::t& arena, i64 x, i64 y, size_t n) {
   return arena.make_span<pair>(n, x, y);
 }
 
 int main(int argc, char ** argv) {
-  (void) argc;
-  (void) argv;
-
   if (argc != 2) {
     fprintf(stderr, "Usage: fae [path]\n");
 
     return 1;
   }
+
+  arena::t arena;
   
   char const * filename = argv[1];
   char const * source = io::read(filename);
 
   (void) source;
 
-  arena::t arena;
-
   auto p = foo(arena, -3, -4);
-  auto q = bar(arena, 3, -13, -14);
+  auto q = bar(arena, -13, -14, 3);
 
   // array<i64, n> * q = arena.make<array<i64, n>>();
 

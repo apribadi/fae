@@ -57,26 +57,26 @@ namespace arena {
       t& operator=(const t&) = delete;
       t& operator=(t&&) = delete;
 
-      template<class T, class ...A>
-      T * make_array(size_t n, A&& ...a) {
+      template<class T, class ... A>
+      T * make_array(size_t n, A&& ... a) {
         static_assert(is_trivially_destructible<T>());
 
         if (n == 0) return nullptr;
 
         T * p = static_cast<T *>(allocate(n * sizeof(T), alignof(T)));
-        for (size_t i = 0; i < n; ++ i) new (&p[i]) T(forward<A>(a)...);
+        for (size_t i = 0; i < n; ++ i) new (&p[i]) T(forward<A>(a) ...);
 
         return p;
       }
 
-      template<class T, class ...A>
-      T * make(A&&... a) {
-        return make_array<T, A...>(1, a...);
+      template<class T, class ... A>
+      T * make(A&& ... a) {
+        return make_array<T>(1, forward<A>(a) ...);
       }
 
-      template<class T, class ...A>
-      span<T> make_span(size_t n, A&& ...a) {
-        return span<T>(make_array<T, A...>(n, a...), n);
+      template<class T, class ... A>
+      span<T> make_span(size_t n, A&& ... a) {
+        return span<T>(make_array<T>(n, forward<A>(a) ...), n);
       }
 
       void clear() {
