@@ -7,10 +7,6 @@ namespace arena {
   constexpr size_t CHUNK_ALIGNMENT = 1 << 21;
   constexpr size_t CHUNK_CAPACITY_INCREMENT = 1 << 21;
 
-  constexpr bool is_power_of_2(size_t n) {
-    return n && ! (n & (n - 1));
-  }
-
   class t {
     private:
       size_t capacity;
@@ -61,8 +57,8 @@ namespace arena {
       t& operator=(const t&) = delete;
       t& operator=(t&&) = delete;
 
-      template<class T, class... A>
-      T * make_internal(size_t n, A&&... a) {
+      template<class T, class ...A>
+      T * make_array(size_t n, A&& ...a) {
         static_assert(is_trivially_destructible<T>());
 
         if (n == 0) return nullptr;
@@ -73,14 +69,14 @@ namespace arena {
         return p;
       }
 
-      template<class T, class... A>
+      template<class T, class ...A>
       T * make(A&&... a) {
-        return make_internal<T, A...>(1, a...);
+        return make_array<T, A...>(1, a...);
       }
 
-      template<class T, class... A>
-      span<T> make_span(size_t n, A&&... a) {
-        return span<T>(make_internal<T, A...>(n, a...), n);
+      template<class T, class ...A>
+      span<T> make_span(size_t n, A&& ...a) {
+        return span<T>(make_array<T, A...>(n, a...), n);
       }
 
       void clear() {
