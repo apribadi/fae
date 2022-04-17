@@ -1,17 +1,11 @@
 namespace token {
   namespace tag {
     enum class t : u8 {
-      // misc
-
-      END_OF_FILE,
-      ILLEGAL_CHARACTER,
-
-      IDENTIFIER,
+      NIL,
+      ILLEGAL,
       INTEGER,
       DECIMAL,
-
-      // operators
-
+      IDENTIFIER,
       PLUS,         // +
       MINUS,        // -
       STAR,         // *
@@ -38,9 +32,6 @@ namespace token {
       RPARENTHESIS, // )
       RBRACKET,     // ]
       RBRACE,       // }
-
-      // keywords
-
 			ARRAY,
       BEGIN,
       BY,

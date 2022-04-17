@@ -16,6 +16,8 @@ namespace lexer {
 
     using enum t;
 
+    constexpr size_t COUNT = 11;
+
     char const * to_string(t t) {
       switch (t) {
         case ANGLE: return "ANGLE";
@@ -292,6 +294,105 @@ namespace lexer {
       ILLEGAL,
       ILLEGAL, // 255
     };
+  }
+
+  namespace state {
+
+    // TODO: reorder, because we need to
+    // exclude spaces and comments from the
+    // token.
+
+    enum class t {
+      START,
+      ANGLE,
+      COLON,
+      DOT,
+      IDENTIFIER,
+      ILLEGAL,
+      INTEGER,
+      COMPLETE_IDENTIFIER,
+      COMPLETE_INTEGER,
+      COMPLETE_OPERATOR,
+      COMPLETE_OPERATOR_ADVANCE,
+      COMPLETE_ILLEGAL,
+      STOP,
+    };
+
+    using enum t;
+
+    constexpr size_t NONTERMINAL_COUNT = 7;
+    constexpr size_t COUNT = 12;
+
+    constexpr array<array<t, category::COUNT>, NONTERMINAL_COUNT> transition = {
+      // START ->
+      {
+        ANGLE,
+        COLON,
+        INTEGER,
+        DOT,
+        EQUAL,
+        ILLEGAL,
+        IDENTIFIER,
+        STOP,
+        COMPLETE_OPERATOR,
+        ILLEGAL,
+        START,
+      },
+
+      // ANGLE ->
+      {
+        COMPLETE_OPERATOR,
+        COMPLETE_OPERATOR,
+        COMPLETE_OPERATOR,
+        COMPLETE_OPERATOR,
+        COMPLETE_OPERATOR_ADVANCE,
+        COMPLETE_OPERATOR,
+        COMPLETE_OPERATOR,
+        COMPLETE_OPERATOR,
+        COMPLETE_OPERATOR,
+        COMPLETE_OPERATOR,
+        COMPLETE_OPERATOR,
+      },
+
+      // COLON ->
+      {
+        COMPLETE_OPERATOR,
+        COMPLETE_OPERATOR,
+        COMPLETE_OPERATOR,
+        COMPLETE_OPERATOR,
+        COMPLETE_OPERATOR_ADVANCE,
+        COMPLETE_OPERATOR,
+        COMPLETE_OPERATOR,
+        COMPLETE_OPERATOR,
+        COMPLETE_OPERATOR,
+        COMPLETE_OPERATOR,
+        COMPLETE_OPERATOR,
+      },
+
+      // DOT ->
+      {
+        COMPLETE_OPERATOR,
+        COMPLETE_OPERATOR,
+        COMPLETE_OPERATOR,
+        DOT,
+        COMPLETE_OPERATOR,
+        COMPLETE_OPERATOR,
+        COMPLETE_OPERATOR,
+        COMPLETE_OPERATOR,
+        COMPLETE_OPERATOR,
+        COMPLETE_OPERATOR,
+        COMPLETE_OPERATOR,
+      },
+
+      {
+      },
+
+      {
+      },
+
+      {
+      },
+    }
   }
 
   namespace dispatch {
