@@ -1,6 +1,6 @@
 namespace token {
   namespace tag {
-    enum class t {
+    enum class t : u8 {
       // misc
 
       END_OF_FILE,
@@ -76,4 +76,11 @@ namespace token {
       WHILE,
     };
   }
+
+  class t {
+  public:
+    tag::t tag;
+    char * start;
+    char * stop;
+  };
 }
