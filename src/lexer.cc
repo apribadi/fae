@@ -8,10 +8,10 @@ namespace lexer {
       EQUAL,
       ILLEGAL,
       LETTER,
-      NIL,
       OPERATOR,
       QUOTE,
       SPACE,
+      STOP,
     };
 
     using enum t;
@@ -27,17 +27,17 @@ namespace lexer {
         case EQUAL: return "EQUAL";
         case ILLEGAL: return "ILLEGAL";
         case LETTER: return "LETTER";
-        case NIL: return "NIL";
         case OPERATOR: return "OPERATOR";
         case QUOTE: return "QUOTE";
         case SPACE: return "SPACE";
+        case STOP: return "STOP";
       }
 
       return "???";
     }
 
     constexpr array<t, 256> of_byte = {
-      NIL,
+      STOP,
       ILLEGAL,
       ILLEGAL,
       ILLEGAL,
@@ -325,18 +325,18 @@ namespace lexer {
 
     constexpr array<array<t, category::COUNT>, NONTERMINAL_COUNT> transition = {
       // START ->
-      {
+      (array<t, category::COUNT>) {
         ANGLE,
         COLON,
         INTEGER,
         DOT,
-        EQUAL,
+        COMPLETE_OPERATOR_ADVANCE,
         ILLEGAL,
         IDENTIFIER,
-        STOP,
         COMPLETE_OPERATOR,
         ILLEGAL,
         START,
+        STOP,
       },
 
       // ANGLE ->
@@ -384,30 +384,75 @@ namespace lexer {
         COMPLETE_OPERATOR,
       },
 
+      // IDENTIFIER
       {
+        COMPLETE_IDENTIFIER,
+        COMPLETE_IDENTIFIER,
+        COMPLETE_IDENTIFIER,
+        COMPLETE_IDENTIFIER,
+        IDENTIFIER,
+        COMPLETE_IDENTIFIER,
+        COMPLETE_IDENTIFIER,
+        COMPLETE_IDENTIFIER,
+        COMPLETE_IDENTIFIER,
+        COMPLETE_IDENTIFIER,
+        COMPLETE_IDENTIFIER,
       },
 
+      // ILLEGAL
       {
+        COMPLETE_ILLEGAL,
+        COMPLETE_ILLEGAL,
+        COMPLETE_ILLEGAL,
+        COMPLETE_ILLEGAL,
+        COMPLETE_ILLEGAL,
+        ILLEGAL,
+        COMPLETE_ILLEGAL,
+        COMPLETE_ILLEGAL,
+        COMPLETE_ILLEGAL,
+        COMPLETE_ILLEGAL,
+        COMPLETE_ILLEGAL,
       },
 
+      // INTEGER
       {
+        COMPLETE_INTEGER,
+        COMPLETE_INTEGER,
+        COMPLETE_INTEGER,
+        COMPLETE_INTEGER,
+        COMPLETE_INTEGER,
+        COMPLETE_INTEGER,
+        INTEGER,
+        COMPLETE_INTEGER,
+        COMPLETE_INTEGER,
+        COMPLETE_INTEGER,
+        COMPLETE_INTEGER,
       },
-    }
+    };
   }
 
+  using kont = token::t (void);
+
+  /*
   namespace dispatch {
     class t {
     private:
       array<category::t, 256> _of_byte = category::of_byte;
+      array<array<t, category::COUNT>, state::NONTERMINAL_COUNT> _transition = state::transition;
 
     public:
       category::t of_byte(byte x) const {
         return _of_byte[static_cast<size_t>(x)];
       }
+
+      state::t transition(state::t state, category::t category) {
+        return _transition[state][category];
+      }
     };
   }
 
   constexpr dispatch::t my_dispatch;
+  */
 
   class t {
   private:

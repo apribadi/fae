@@ -1,7 +1,7 @@
 namespace token {
   namespace tag {
     enum class t : u8 {
-      NIL,
+      STOP,
       ILLEGAL,
       INTEGER,
       DECIMAL,

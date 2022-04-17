@@ -49,7 +49,7 @@ int main(int argc, char ** argv) {
     printf(
         "'%c' -> %s\n",
         static_cast<char>(c),
-        lexer::category::to_string(lexer::my_dispatch.of_byte(c))
+        lexer::category::to_string(lexer::category::of_byte[(size_t) c])
       );
   }
 
