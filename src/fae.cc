@@ -43,20 +43,15 @@ int main(int argc, char ** argv) {
 
   arena::t arena;
   
-  char const * filename = argv[1];
-  char const * source = io::read(arena, filename);
+  span<byte> source = io::read(arena, argv[1]);
 
-  (void) source;
-
-  auto p = foo(arena, -3, -4);
-  auto q = bar(arena, -13, -14, 3);
-
-  (void) p;
-  (void) q;
-
-  printf("Hello, world!\n");
-  p->print();
-  for (pair x : q) x.print();
+  for (byte c : source) {
+    printf(
+        "'%c' -> %s\n",
+        static_cast<char>(c),
+        lexer::category::to_string(lexer::my_dispatch.of_byte(c))
+      );
+  }
 
   return 0;
 }

@@ -16,6 +16,24 @@ namespace lexer {
 
     using enum t;
 
+    char const * to_string(t t) {
+      switch (t) {
+        case ANGLE: return "ANGLE";
+        case COLON: return "COLON";
+        case DIGIT: return "DIGIT";
+        case DOT: return "DOT";
+        case EQUAL: return "EQUAL";
+        case ILLEGAL: return "ILLEGAL";
+        case LETTER: return "LETTER";
+        case NIL: return "NIL";
+        case OPERATOR: return "OPERATOR";
+        case QUOTE: return "QUOTE";
+        case SPACE: return "SPACE";
+      }
+
+      return "???";
+    }
+
     constexpr array<t, 256> of_byte = {
       NIL,
       ILLEGAL,
@@ -144,9 +162,8 @@ namespace lexer {
       OPERATOR, // |
       OPERATOR, // }
       OPERATOR, // ~
-      ILLEGAL, 
-
-      ILLEGAL, // 128
+      ILLEGAL,  // 127
+      ILLEGAL,  // 128
       ILLEGAL,
       ILLEGAL,
       ILLEGAL,
@@ -273,16 +290,23 @@ namespace lexer {
       ILLEGAL,
       ILLEGAL,
       ILLEGAL,
-      ILLEGAL,
+      ILLEGAL, // 255
     };
   }
 
   namespace dispatch {
     class t {
+    private:
+      array<category::t, 256> _of_byte = category::of_byte;
+
     public:
-      array<category::t, 256> category_of_byte;
+      category::t of_byte(byte x) const {
+        return _of_byte[static_cast<size_t>(x)];
+      }
     };
   }
+
+  constexpr dispatch::t my_dispatch;
 
   class t {
   private:
