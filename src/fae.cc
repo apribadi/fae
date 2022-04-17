@@ -1,4 +1,6 @@
 #include <array>
+#include <bit>
+#include <cassert>
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
@@ -10,6 +12,8 @@
 #include "prelude.cc"
 #include "arena.cc"
 #include "io.cc"
+#include "token.cc"
+#include "lexer.cc"
 
 class pair {
 public:
@@ -40,20 +44,15 @@ int main(int argc, char ** argv) {
   arena::t arena;
   
   char const * filename = argv[1];
-  char const * source = io::read(filename);
+  char const * source = io::read(arena, filename);
 
   (void) source;
 
   auto p = foo(arena, -3, -4);
   auto q = bar(arena, -13, -14, 3);
 
-  // array<i64, n> * q = arena.make<array<i64, n>>();
-
   (void) p;
   (void) q;
-
-  // auto q = arena.make<arena::t>();
-  // (void) q;
 
   printf("Hello, world!\n");
   p->print();
