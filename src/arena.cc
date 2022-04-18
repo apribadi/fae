@@ -20,7 +20,7 @@ namespace arena {
       void * allocate(size_t size, size_t align) {
         if (size > mark) [[unlikely]] return allocate_slow(size, align);
         mark = (mark - size) & ~ (align - 1);
-        return static_cast<byte *>(chunk) + mark;
+        return static_cast<char *>(chunk) + mark;
       }
 
       void * allocate_slow(size_t size, size_t align) {
@@ -50,13 +50,13 @@ namespace arena {
         for (void * p : full_chunks) ::operator delete(p);
       }
 
-      t(const t&) = delete;
-      t(t&&) = delete;
-      t& operator=(const t&) = delete;
-      t& operator=(t&&) = delete;
+      t(t const &) = delete;
+      t(t &&) = delete;
+      t & operator=(t const &) = delete;
+      t & operator=(t &&) = delete;
 
       template<class T, class ... A>
-      T * make_array(size_t n, A&& ... a) {
+      T * make_array(size_t n, A && ... a) {
         static_assert(is_trivially_destructible<T>());
         static_assert(alignof(T) <= CHUNK_ALIGNMENT);
         static_assert(popcount(alignof(T)) == 1);
@@ -72,12 +72,12 @@ namespace arena {
       }
 
       template<class T, class ... A>
-      T * make(A&& ... a) {
+      T * make(A && ... a) {
         return make_array<T, A ...>(1, forward<A>(a) ...);
       }
 
       template<class T, class ... A>
-      span<T> make_span(size_t n, A&& ... a) {
+      span<T> make_span(size_t n, A && ... a) {
         return span<T>(make_array<T, A ...>(n, forward<A>(a) ...), n);
       }
 

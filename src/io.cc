@@ -1,5 +1,5 @@
 namespace io {
-  span<byte> read(arena::t& arena, char const * path) {
+  span<char> read(arena::t& arena, char const * path) {
     // TODO: don't leak file
     // TODO: fewer C-isms
     FILE * file = fopen(path, "rb");
@@ -11,6 +11,6 @@ namespace io {
     if (fread(buf, 1, n, file) != n) throw runtime_error("io::read - fread failed!");
     fclose(file);
     buf[n] = '\0';
-    return span<byte>(reinterpret_cast<byte *>(buf), n + 1);
+    return span<char>(buf, n + 1);
   }
 }

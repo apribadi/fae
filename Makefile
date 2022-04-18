@@ -9,6 +9,8 @@ bin/fae: src/*.cc
 		-Werror \
 		-Wextra \
 		-Wno-c99-extensions \
+		-Wno-switch \
+		-fno-signed-char \
 		-fno-finite-loops \
 		-fno-math-errno \
 		-fno-strict-aliasing \

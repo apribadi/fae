@@ -1,6 +1,6 @@
 namespace lexer {
-  namespace category {
-    enum class t : u8 {
+  namespace kind {
+    enum t : u8 {
       ANGLE,
       COLON,
       DIGIT,
@@ -13,8 +13,6 @@ namespace lexer {
       SPACE,
       STOP,
     };
-
-    using enum t;
 
     constexpr size_t COUNT = 11;
 
@@ -36,7 +34,7 @@ namespace lexer {
       return "???";
     }
 
-    constexpr array<t, 256> of_byte = {
+    constexpr array<t, 256> table = {
       STOP,
       ILLEGAL,
       ILLEGAL,
@@ -298,11 +296,12 @@ namespace lexer {
 
   namespace state {
 
-    // TODO: reorder, because we need to
-    // exclude spaces and comments from the
+    // TODO: reorder, because we need to exclude spaces and comments from the
     // token.
+    //
+    // ???
 
-    enum class t {
+    enum t {
       START,
       ANGLE,
       COLON,
@@ -318,14 +317,32 @@ namespace lexer {
       STOP,
     };
 
-    using enum t;
-
     constexpr size_t NONTERMINAL_COUNT = 7;
-    constexpr size_t COUNT = 12;
+    constexpr size_t COUNT = 13;
 
-    constexpr array<array<t, category::COUNT>, NONTERMINAL_COUNT> transition = {
+    char const * to_string(t t) {
+      switch (t) {
+        case START: return "START";
+        case ANGLE: return "ANGLE";
+        case COLON: return "COLON";
+        case DOT: return "DOT";
+        case IDENTIFIER: return "IDENTIFIER";
+        case ILLEGAL: return "ILLEGAL";
+        case INTEGER: return "INTEGER";
+        case COMPLETE_IDENTIFIER: return "COMPLETE_IDENTIFIER";
+        case COMPLETE_INTEGER: return "COMPLETE_INTEGER";
+        case COMPLETE_OPERATOR: return "COMPLETE_OPERATOR";
+        case COMPLETE_OPERATOR_ADVANCE: return "COMPLETE_OPERATOR_ADVANCE";
+        case COMPLETE_ILLEGAL: return "COMPLETE_ILLEGAL";
+        case STOP: return "STOP";
+      }
+
+      return "???";
+    }
+
+    constexpr array<array<t, kind::COUNT>, NONTERMINAL_COUNT> table = {
       // START ->
-      (array<t, category::COUNT>) {
+      (array<t, kind::COUNT>) {
         ANGLE,
         COLON,
         INTEGER,
@@ -333,7 +350,7 @@ namespace lexer {
         COMPLETE_OPERATOR_ADVANCE,
         ILLEGAL,
         IDENTIFIER,
-        COMPLETE_OPERATOR,
+        COMPLETE_OPERATOR_ADVANCE,
         ILLEGAL,
         START,
         STOP,
@@ -390,9 +407,9 @@ namespace lexer {
         COMPLETE_IDENTIFIER,
         COMPLETE_IDENTIFIER,
         COMPLETE_IDENTIFIER,
+        COMPLETE_IDENTIFIER,
+        COMPLETE_IDENTIFIER,
         IDENTIFIER,
-        COMPLETE_IDENTIFIER,
-        COMPLETE_IDENTIFIER,
         COMPLETE_IDENTIFIER,
         COMPLETE_IDENTIFIER,
         COMPLETE_IDENTIFIER,
@@ -418,11 +435,11 @@ namespace lexer {
       {
         COMPLETE_INTEGER,
         COMPLETE_INTEGER,
-        COMPLETE_INTEGER,
-        COMPLETE_INTEGER,
-        COMPLETE_INTEGER,
-        COMPLETE_INTEGER,
         INTEGER,
+        COMPLETE_INTEGER,
+        COMPLETE_INTEGER,
+        COMPLETE_INTEGER,
+        COMPLETE_INTEGER,
         COMPLETE_INTEGER,
         COMPLETE_INTEGER,
         COMPLETE_INTEGER,
@@ -433,41 +450,122 @@ namespace lexer {
 
   using kont = token::t (void);
 
-  /*
-  namespace dispatch {
+  namespace table {
     class t {
-    private:
-      array<category::t, 256> _of_byte = category::of_byte;
-      array<array<t, category::COUNT>, state::NONTERMINAL_COUNT> _transition = state::transition;
-
     public:
-      category::t of_byte(byte x) const {
-        return _of_byte[static_cast<size_t>(x)];
-      }
-
-      state::t transition(state::t state, category::t category) {
-        return _transition[state][category];
-      }
+      array<kind::t, 256> kind;
+      array<array<state::t, kind::COUNT>, state::NONTERMINAL_COUNT> state;
+      array<token::t(*)(t const &, char const *, char const *, state::t), state::COUNT> jump;
     };
   }
 
-  constexpr dispatch::t my_dispatch;
-  */
+  token::t next__loop(table::t const & table, char const * a, char const * b, state::t s) {
+    kind::t k = table.kind[static_cast<unsigned char>(* b)];
+    s = table.state[s][k];
+    a = a + (s == state::START);
+    [[clang::musttail]] return table.jump[s](table, a, b + 1, s);
+  }
+
+  token::t next__complete_identifier(table::t const &, char const * a, char const * b, state::t) {
+    return token::make(token::tag::IDENTIFIER, a, b - 1);
+  }
+
+  token::t next__complete_integer(table::t const &, char const * a, char const * b, state::t) {
+    return token::make(token::tag::INTEGER, a, b - 1);
+  }
+
+  token::t next__complete_operator(table::t const &, char const * a, char const * b, state::t) {
+    b = b - 1;
+
+    if (b - a == 1) {
+      switch (* a) {
+        case '+': return token::make(token::tag::PLUS, a, b);
+        case '-': return token::make(token::tag::MINUS, a, b);
+        case '*': return token::make(token::tag::STAR, a, b);
+        case '/': return token::make(token::tag::SLASH, a, b);
+        case '~': return token::make(token::tag::TILDE, a, b);
+        case '&': return token::make(token::tag::AMPERSAND, a, b);
+        case '.': return token::make(token::tag::DOT, a, b);
+        case ',': return token::make(token::tag::COMMA, a, b);
+        case ';': return token::make(token::tag::SEMICOLON, a, b);
+        case '|': return token::make(token::tag::PIPE, a, b);
+        case '(': return token::make(token::tag::LPARENTHESIS, a, b);
+        case '[': return token::make(token::tag::LBRACKET, a, b);
+        case '{': return token::make(token::tag::LBRACE, a, b);
+        case '^': return token::make(token::tag::CARET, a, b);
+        case '=': return token::make(token::tag::EQUAL, a, b);
+        case '#': return token::make(token::tag::HASH, a, b);
+        case '<': return token::make(token::tag::LT, a, b);
+        case '>': return token::make(token::tag::GT, a, b);
+        case ':': return token::make(token::tag::COLON, a, b);
+        case ')': return token::make(token::tag::RPARENTHESIS, a, b);
+        case ']': return token::make(token::tag::RBRACKET, a, b);
+        case '}': return token::make(token::tag::RBRACE, a, b);
+      }
+    }
+    else if (b - a == 2) {
+      if (!bcmp(a, ":=", 2)) return token::make(token::tag::ASSIGNMENT, a, b);
+      if (!bcmp(a, "<=", 2)) return token::make(token::tag::LE, a, b);
+      if (!bcmp(a, ">=", 2)) return token::make(token::tag::GE, a, b);
+    }
+
+    return token::make(token::tag::ILLEGAL, a, b);
+  }
+
+  token::t next__complete_operator_advance(table::t const & table, char const * a, char const * b, state::t s) {
+    return next__complete_operator(table, a, b + 1, s);
+  }
+
+  token::t next__complete_illegal(table::t const &, char const * a, char const * b, state::t) {
+    return token::make(token::tag::ILLEGAL, a, b - 1);
+  }
+
+  token::t next__stop(table::t const &, char const * a, char const * b, state::t) {
+    return token::make(token::tag::STOP, a, b - 1);
+  }
+
+  constexpr table::t global_table = {
+    kind::table,
+    state::table,
+    {
+      next__loop,
+      next__loop,
+      next__loop,
+      next__loop,
+      next__loop,
+      next__loop,
+      next__loop,
+      next__complete_identifier,
+      next__complete_integer,
+      next__complete_operator,
+      next__complete_operator_advance,
+      next__complete_illegal,
+      next__stop,
+    }
+  };
 
   class t {
   private:
-    byte * start;
-    byte * stop;
-    byte * current;
+    char const * start;
+    char const * stop;
+    char const * current;
+    table::t const * table;
 
   public:
-    t(span<byte> source) :
-      start(&source.front()),
-      stop(&source.front() + source.size()),
-      current(&source.front())
+    t(span<char> source) :
+      start(& source.front()),
+      stop(& source.front() + source.size()),
+      current(& source.front()),
+      table(& global_table)
     {
-      assert(source.size() > 0);
-      assert(source[source.size() - 1] == byte(0));
+      assert(stop - start > 0);
+      assert(* (stop - 1) == char(0));
+    }
+
+    token::t next() {
+      token::t token = next__loop(* table, current, current, state::START);
+      current = token.stop;
+      return token;
     }
   };
 }
