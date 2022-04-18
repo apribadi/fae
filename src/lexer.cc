@@ -1,4 +1,9 @@
 namespace lexer {
+  // TODO:
+  //
+  // decimals
+  // comments
+
   namespace kind {
     enum t : u8 {
       ANGLE,
@@ -295,20 +300,16 @@ namespace lexer {
   }
 
   namespace state {
-
-    // TODO: reorder, because we need to exclude spaces and comments from the
-    // token.
-    //
-    // ???
-
     enum t {
       START,
       ANGLE,
       COLON,
+      DECIMAL,
       DOT,
       IDENTIFIER,
       ILLEGAL,
       INTEGER,
+      COMPLETE_DECIMAL,
       COMPLETE_IDENTIFIER,
       COMPLETE_INTEGER,
       COMPLETE_OPERATOR,
@@ -317,18 +318,20 @@ namespace lexer {
       STOP,
     };
 
-    constexpr size_t NONTERMINAL_COUNT = 7;
-    constexpr size_t COUNT = 13;
+    constexpr size_t NONTERMINAL_COUNT = 8;
+    constexpr size_t COUNT = 15;
 
     char const * to_string(t t) {
       switch (t) {
         case START: return "START";
         case ANGLE: return "ANGLE";
         case COLON: return "COLON";
+        case DECIMAL: return "DECIMAL";
         case DOT: return "DOT";
         case IDENTIFIER: return "IDENTIFIER";
         case ILLEGAL: return "ILLEGAL";
         case INTEGER: return "INTEGER";
+        case COMPLETE_DECIMAL: return "COMPLETE_DECIMAL";
         case COMPLETE_IDENTIFIER: return "COMPLETE_IDENTIFIER";
         case COMPLETE_INTEGER: return "COMPLETE_INTEGER";
         case COMPLETE_OPERATOR: return "COMPLETE_OPERATOR";
@@ -386,6 +389,21 @@ namespace lexer {
         COMPLETE_OPERATOR,
       },
 
+      // DECIMAL
+      {
+        COMPLETE_DECIMAL,
+        COMPLETE_DECIMAL,
+        DECIMAL,
+        COMPLETE_DECIMAL,
+        COMPLETE_DECIMAL,
+        COMPLETE_DECIMAL,
+        COMPLETE_DECIMAL,
+        COMPLETE_DECIMAL,
+        COMPLETE_DECIMAL,
+        COMPLETE_DECIMAL,
+        COMPLETE_DECIMAL,
+      },
+
       // DOT ->
       {
         COMPLETE_OPERATOR,
@@ -405,7 +423,7 @@ namespace lexer {
       {
         COMPLETE_IDENTIFIER,
         COMPLETE_IDENTIFIER,
-        COMPLETE_IDENTIFIER,
+        IDENTIFIER,
         COMPLETE_IDENTIFIER,
         COMPLETE_IDENTIFIER,
         COMPLETE_IDENTIFIER,
@@ -436,7 +454,7 @@ namespace lexer {
         COMPLETE_INTEGER,
         COMPLETE_INTEGER,
         INTEGER,
-        COMPLETE_INTEGER,
+        DECIMAL,
         COMPLETE_INTEGER,
         COMPLETE_INTEGER,
         COMPLETE_INTEGER,
@@ -466,8 +484,28 @@ namespace lexer {
     [[clang::musttail]] return table.jump[s](table, a, b + 1, s);
   }
 
+  token::t next__complete_decimal(table::t const &, char const * a, char const * b, state::t) {
+    return token::make(token::tag::DECIMAL, a, b - 1);
+  }
+
   token::t next__complete_identifier(table::t const &, char const * a, char const * b, state::t) {
-    return token::make(token::tag::IDENTIFIER, a, b - 1);
+    b = b - 1;
+
+    if (b - a == 2) {
+      if (!bcmp(a, "BY", 2)) return token::make(token::tag::BY, a, b);
+      if (!bcmp(a, "DO", 2)) return token::make(token::tag::DO, a, b);
+      if (!bcmp(a, "IF", 2)) return token::make(token::tag::IF, a, b);
+      if (!bcmp(a, "IN", 2)) return token::make(token::tag::IN, a, b);
+      if (!bcmp(a, "IS", 2)) return token::make(token::tag::IS, a, b);
+      if (!bcmp(a, "OF", 2)) return token::make(token::tag::OF, a, b);
+      if (!bcmp(a, "OR", 2)) return token::make(token::tag::OR, a, b);
+      if (!bcmp(a, "TO", 2)) return token::make(token::tag::TO, a, b);
+    }
+    else if (b - a == 3) {
+      // TODO: more keywords
+    }
+
+    return token::make(token::tag::IDENTIFIER, a, b);
   }
 
   token::t next__complete_integer(table::t const &, char const * a, char const * b, state::t) {
@@ -507,12 +545,13 @@ namespace lexer {
       if (!bcmp(a, ":=", 2)) return token::make(token::tag::ASSIGNMENT, a, b);
       if (!bcmp(a, "<=", 2)) return token::make(token::tag::LE, a, b);
       if (!bcmp(a, ">=", 2)) return token::make(token::tag::GE, a, b);
+      if (!bcmp(a, "..", 2)) return token::make(token::tag::DOTDOT, a, b);
     }
 
     return token::make(token::tag::ILLEGAL, a, b);
   }
 
-  token::t next__complete_operator_advance(table::t const & table, char const * a, char const * b, state::t s) {
+  token::t next__complete_operator_inclusive(table::t const & table, char const * a, char const * b, state::t s) {
     return next__complete_operator(table, a, b + 1, s);
   }
 
@@ -535,10 +574,12 @@ namespace lexer {
       next__loop,
       next__loop,
       next__loop,
+      next__loop,
+      next__complete_decimal,
       next__complete_identifier,
       next__complete_integer,
       next__complete_operator,
-      next__complete_operator_advance,
+      next__complete_operator_inclusive,
       next__complete_illegal,
       next__stop,
     }
@@ -549,21 +590,19 @@ namespace lexer {
     char const * start;
     char const * stop;
     char const * current;
-    table::t const * table;
 
   public:
     t(span<char> source) :
       start(& source.front()),
       stop(& source.front() + source.size()),
-      current(& source.front()),
-      table(& global_table)
+      current(& source.front())
     {
       assert(stop - start > 0);
       assert(* (stop - 1) == char(0));
     }
 
     token::t next() {
-      token::t token = next__loop(* table, current, current, state::START);
+      token::t token = next__loop(global_table, current, current, state::START);
       current = token.stop;
       return token;
     }

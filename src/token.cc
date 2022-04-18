@@ -26,7 +26,7 @@ namespace token {
       LT,           // <
       GT,           // >
       LE,           // <=
-      GE,           // >
+      GE,           // >=
       DOTDOT,       // ..
       COLON,        // :
       RPARENTHESIS, // )
@@ -100,41 +100,39 @@ namespace token {
         case RPARENTHESIS: return "RPARENTHESIS";
         case RBRACKET: return "RBRACKET";
         case RBRACE: return "RBRACE";
-        /*
-        ARRAY,
-        BEGIN,
-        BY,
-        CASE,
-        CONST,
-        DIV,
-        DO,
-        ELSE,
-        ELSIF,
-        END,
-        FALSE,
-        FOR,
-        IF,
-        IMPORT,
-        IN,
-        IS,
-        MOD,
-        MODULE,
-        NIL,
-        OF,
-        OR,
-        POINTER,
-        PROCEDURE,
-        RECORD,
-        REPEAT,
-        RETURN,
-        THEN,
-        TO,
-        TRUE,
-        TYPE,
-        UNTIL,
-        VAR,
-        WHILE,
-        */
+        case ARRAY: return "ARRAY";
+        case BEGIN: return "BEGIN";
+        case BY: return "BY";
+        case CASE: return "CASE";
+        case CONST: return "CONST";
+        case DIV: return "DIV";
+        case DO: return "DO";
+        case ELSE: return "ELSE";
+        case ELSIF: return "ELSIF";
+        case END: return "END";
+        case FALSE: return "FALSE";
+        case FOR: return "FOR";
+        case IF: return "IF";
+        case IMPORT: return "IMPORT";
+        case IN: return "IN";
+        case IS: return "IS";
+        case MOD: return "MOD";
+        case MODULE: return "MODULE";
+        case NIL: return "NIL";
+        case OF: return "OF";
+        case OR: return "OR";
+        case POINTER: return "???";
+        case PROCEDURE: return "???";
+        case RECORD: return "???";
+        case REPEAT: return "???";
+        case RETURN: return "???";
+        case THEN: return "???";
+        case TO: return "TO";
+        case TRUE: return "???";
+        case TYPE: return "???";
+        case UNTIL: return "???";
+        case VAR: return "???";
+        case WHILE: return "???";
       }
 
       return "???";
@@ -154,10 +152,10 @@ namespace token {
 
   void print(t t) {
     printf(
-        "tag = %s, \"%.*s\"\n",
+        "%s: \"%.*s\"\n",
         tag::to_string(t.tag),
         static_cast<int>(t.stop - t.start),
-        reinterpret_cast<char const *>(t.start)
+        t.start
       );
   }
 }
