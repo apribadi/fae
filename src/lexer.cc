@@ -494,9 +494,10 @@ namespace lexer {
   }
 
 
+  __attribute__ ((always_inline))
   token::t next__dispatch(table::t const & table, char const * a, char const * b, char const * c, state::t s) {
-    kind::t k = table.kind[static_cast<unsigned char>(* b)];
-    s = table.state[s][k];
+    s = table.state[s][table.kind[static_cast<unsigned char>(* b)]];
+
     [[clang::musttail]] return table.jump[s](table, a, b, c, s);
   }
 
@@ -504,7 +505,7 @@ namespace lexer {
     [[clang::musttail]] return next__dispatch(table, b + 1, b + 1, c, s);
   }
 
-  token::t next__loop(table::t const & table, char const * a, char const * b, char const * c, state::t s) {
+  token::t next__continue(table::t const & table, char const * a, char const * b, char const * c, state::t s) {
     [[clang::musttail]] return next__dispatch(table, a, b + 1, c, s);
   }
 
@@ -588,13 +589,13 @@ namespace lexer {
     state::table,
     {
       next__restart,
-      next__loop,
-      next__loop,
-      next__loop,
-      next__loop,
-      next__loop,
-      next__loop,
-      next__loop,
+      next__continue,
+      next__continue,
+      next__continue,
+      next__continue,
+      next__continue,
+      next__continue,
+      next__continue,
       next__complete_decimal,
       next__complete_identifier,
       next__complete_integer,
@@ -612,17 +613,19 @@ namespace lexer {
     char const * current;
 
   public:
-    t(span<char> source) :
-      start(& source.front()),
-      stop(& source.front() + source.size()),
-      current(& source.front())
-    {
-      assert(stop - start > 0);
-      assert(* (stop - 1) == char(0));
+    t(span<char> source) {
+      size_t n = source.size();
+
+      assert(n > 0);
+      assert(source[n - 1] == '\0');
+
+      start = &source[0];
+      stop = &source[n - 1];
+      current = start;
     }
 
     token::t next() {
-      token::t token = next__dispatch(global_table, current, current, stop - 1, state::START);
+      token::t token = next__dispatch(global_table, current, current, stop, state::START);
       current = token.stop;
       return token;
     }
