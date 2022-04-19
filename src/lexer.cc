@@ -5,6 +5,22 @@ namespace lexer {
   // comments
 
   namespace kind {
+    // add
+    //
+    // LPAREN
+    // RPAREN
+    // STAR
+    // A_B_C_D_F
+    // E
+    // H
+    // X
+    // PLUS_MINUS
+    // ANGLE_COLON
+    //
+    // remove
+    //
+    // ANGLE
+    // COLON
     enum t : u8 {
       ANGLE,
       COLON,
@@ -473,24 +489,30 @@ namespace lexer {
     public:
       array<kind::t, 256> kind;
       array<array<state::t, kind::COUNT>, state::NONTERMINAL_COUNT> state;
-      array<token::t(*)(t const &, char const *, char const *, state::t), state::COUNT> jump;
+      array<token::t(*)(t const &, char const *, char const *, char const *, state::t), state::COUNT> jump;
     };
   }
 
-  token::t next__loop(table::t const & table, char const * a, char const * b, state::t s) {
+
+  token::t next__dispatch(table::t const & table, char const * a, char const * b, char const * c, state::t s) {
     kind::t k = table.kind[static_cast<unsigned char>(* b)];
     s = table.state[s][k];
-    a = a + (s == state::START);
-    [[clang::musttail]] return table.jump[s](table, a, b + 1, s);
+    [[clang::musttail]] return table.jump[s](table, a, b, c, s);
   }
 
-  token::t next__complete_decimal(table::t const &, char const * a, char const * b, state::t) {
-    return token::make(token::tag::DECIMAL, a, b - 1);
+  token::t next__restart(table::t const & table, char const *, char const * b, char const * c, state::t s) {
+    [[clang::musttail]] return next__dispatch(table, b + 1, b + 1, c, s);
   }
 
-  token::t next__complete_identifier(table::t const &, char const * a, char const * b, state::t) {
-    b = b - 1;
+  token::t next__loop(table::t const & table, char const * a, char const * b, char const * c, state::t s) {
+    [[clang::musttail]] return next__dispatch(table, a, b + 1, c, s);
+  }
 
+  token::t next__complete_decimal(table::t const &, char const * a, char const * b, char const *, state::t) {
+    return token::make(token::tag::DECIMAL, a, b);
+  }
+
+  token::t next__complete_identifier(table::t const &, char const * a, char const * b, char const *, state::t) {
     if (b - a == 2) {
       if (!bcmp(a, "BY", 2)) return token::make(token::tag::BY, a, b);
       if (!bcmp(a, "DO", 2)) return token::make(token::tag::DO, a, b);
@@ -508,13 +530,11 @@ namespace lexer {
     return token::make(token::tag::IDENTIFIER, a, b);
   }
 
-  token::t next__complete_integer(table::t const &, char const * a, char const * b, state::t) {
-    return token::make(token::tag::INTEGER, a, b - 1);
+  token::t next__complete_integer(table::t const &, char const * a, char const * b, char const *, state::t) {
+    return token::make(token::tag::INTEGER, a, b);
   }
 
-  token::t next__complete_operator(table::t const &, char const * a, char const * b, state::t) {
-    b = b - 1;
-
+  token::t next__complete_operator(table::t const &, char const * a, char const * b, char const *, state::t) {
     if (b - a == 1) {
       switch (* a) {
         case '+': return token::make(token::tag::PLUS, a, b);
@@ -551,23 +571,23 @@ namespace lexer {
     return token::make(token::tag::ILLEGAL, a, b);
   }
 
-  token::t next__complete_operator_inclusive(table::t const & table, char const * a, char const * b, state::t s) {
-    return next__complete_operator(table, a, b + 1, s);
+  token::t next__complete_operator_inclusive(table::t const & table, char const * a, char const * b, char const * c, state::t s) {
+    return next__complete_operator(table, a, b + 1, c, s);
   }
 
-  token::t next__complete_illegal(table::t const &, char const * a, char const * b, state::t) {
-    return token::make(token::tag::ILLEGAL, a, b - 1);
+  token::t next__complete_illegal(table::t const &, char const * a, char const * b, char const *, state::t) {
+    return token::make(token::tag::ILLEGAL, a, b);
   }
 
-  token::t next__stop(table::t const &, char const * a, char const * b, state::t) {
-    return token::make(token::tag::STOP, a, b - 1);
+  token::t next__stop(table::t const &, char const * a, char const * b, char const *, state::t) {
+    return token::make(token::tag::STOP, a, b);
   }
 
   constexpr table::t global_table = {
     kind::table,
     state::table,
     {
-      next__loop,
+      next__restart,
       next__loop,
       next__loop,
       next__loop,
@@ -602,7 +622,7 @@ namespace lexer {
     }
 
     token::t next() {
-      token::t token = next__loop(global_table, current, current, state::START);
+      token::t token = next__dispatch(global_table, current, current, stop - 1, state::START);
       current = token.stop;
       return token;
     }
