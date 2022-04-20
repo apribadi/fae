@@ -30,12 +30,13 @@ namespace lexer {
       ILLEGAL,
       LETTER,
       OPERATOR,
+      PUNCTUATION,
       QUOTE,
       SPACE,
       STOP,
     };
 
-    constexpr size_t COUNT = 11;
+    constexpr size_t COUNT = 12;
 
     char const * to_string(t t) {
       switch (t) {
@@ -370,6 +371,7 @@ namespace lexer {
         ILLEGAL,
         IDENTIFIER,
         COMPLETE_OPERATOR_ADVANCE,
+        COMPLETE_OPERATOR_ADVANCE,
         ILLEGAL,
         START,
         STOP,
@@ -382,6 +384,7 @@ namespace lexer {
         COMPLETE_OPERATOR,
         COMPLETE_OPERATOR,
         COMPLETE_OPERATOR_ADVANCE,
+        COMPLETE_OPERATOR,
         COMPLETE_OPERATOR,
         COMPLETE_OPERATOR,
         COMPLETE_OPERATOR,
@@ -403,6 +406,7 @@ namespace lexer {
         COMPLETE_OPERATOR,
         COMPLETE_OPERATOR,
         COMPLETE_OPERATOR,
+        COMPLETE_OPERATOR,
       },
 
       // DECIMAL
@@ -410,6 +414,7 @@ namespace lexer {
         COMPLETE_DECIMAL,
         COMPLETE_DECIMAL,
         DECIMAL,
+        COMPLETE_DECIMAL,
         COMPLETE_DECIMAL,
         COMPLETE_DECIMAL,
         COMPLETE_DECIMAL,
@@ -433,6 +438,7 @@ namespace lexer {
         COMPLETE_OPERATOR,
         COMPLETE_OPERATOR,
         COMPLETE_OPERATOR,
+        COMPLETE_OPERATOR,
       },
 
       // IDENTIFIER
@@ -444,6 +450,7 @@ namespace lexer {
         COMPLETE_IDENTIFIER,
         COMPLETE_IDENTIFIER,
         IDENTIFIER,
+        COMPLETE_IDENTIFIER,
         COMPLETE_IDENTIFIER,
         COMPLETE_IDENTIFIER,
         COMPLETE_IDENTIFIER,
@@ -463,6 +470,7 @@ namespace lexer {
         COMPLETE_ILLEGAL,
         COMPLETE_ILLEGAL,
         COMPLETE_ILLEGAL,
+        COMPLETE_ILLEGAL,
       },
 
       // INTEGER
@@ -471,6 +479,7 @@ namespace lexer {
         COMPLETE_INTEGER,
         INTEGER,
         DECIMAL,
+        COMPLETE_INTEGER,
         COMPLETE_INTEGER,
         COMPLETE_INTEGER,
         COMPLETE_INTEGER,
