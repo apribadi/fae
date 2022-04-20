@@ -3,9 +3,8 @@ namespace token {
     enum t : u8 {
       STOP,
       ILLEGAL,
-      INTEGER,
-      DECIMAL,
       IDENTIFIER,
+      NUMBER,
       PLUS,         // +
       MINUS,        // -
       STAR,         // *
@@ -71,9 +70,8 @@ namespace token {
       switch (t) {
         case STOP: return "STOP";
         case ILLEGAL: return "ILLEGAL";
-        case INTEGER: return "INTEGER";
-        case DECIMAL: return "DECIMAL";
         case IDENTIFIER: return "IDENTIFIER";
+        case NUMBER: return "NUMBER";
         case PLUS: return "PLUS";
         case MINUS: return "MINUS";
         case STAR: return "STAR";
