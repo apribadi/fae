@@ -493,11 +493,9 @@ namespace lexer {
     };
   }
 
-
   __attribute__ ((always_inline))
   token::t next__dispatch(table::t const & table, char const * a, char const * b, char const * c, state::t s) {
     s = table.state[s][table.kind[static_cast<unsigned char>(* b)]];
-
     [[clang::musttail]] return table.jump[s](table, a, b, c, s);
   }
 
