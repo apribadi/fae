@@ -1,4 +1,6 @@
 namespace lexer {
+  // TODO: lex comments
+  // TODO: lex string literals
 
   namespace kind {
     enum t : u8 {
@@ -434,7 +436,8 @@ namespace lexer {
   }
 
   token::t next__complete_identifier(table::t const &, char const * a, char const * b, char const *, state::t) {
-    if (b - a == 2) {
+    switch (b - a) {
+    case 2:
       if (!bcmp(a, "BY", 2)) return token::make(token::tag::BY, a, b);
       if (!bcmp(a, "DO", 2)) return token::make(token::tag::DO, a, b);
       if (!bcmp(a, "IF", 2)) return token::make(token::tag::IF, a, b);
@@ -443,9 +446,44 @@ namespace lexer {
       if (!bcmp(a, "OF", 2)) return token::make(token::tag::OF, a, b);
       if (!bcmp(a, "OR", 2)) return token::make(token::tag::OR, a, b);
       if (!bcmp(a, "TO", 2)) return token::make(token::tag::TO, a, b);
-    }
-    else if (b - a == 3) {
-      // TODO: more keywords
+      break;
+    case 3:
+      if (!bcmp(a, "DIV", 3)) return token::make(token::tag::DIV, a, b);
+      if (!bcmp(a, "END", 3)) return token::make(token::tag::END, a, b);
+      if (!bcmp(a, "FOR", 3)) return token::make(token::tag::FOR, a, b);
+      if (!bcmp(a, "MOD", 3)) return token::make(token::tag::MOD, a, b);
+      if (!bcmp(a, "NIL", 3)) return token::make(token::tag::NIL, a, b);
+      if (!bcmp(a, "VAR", 3)) return token::make(token::tag::VAR, a, b);
+      break;
+    case 4:
+      if (!bcmp(a, "CASE", 4)) return token::make(token::tag::CASE, a, b);
+      if (!bcmp(a, "ELSE", 4)) return token::make(token::tag::ELSE, a, b);
+      if (!bcmp(a, "THEN", 4)) return token::make(token::tag::THEN, a, b);
+      if (!bcmp(a, "TRUE", 4)) return token::make(token::tag::TRUE, a, b);
+      if (!bcmp(a, "TYPE", 4)) return token::make(token::tag::TYPE, a, b);
+      break;
+    case 5:
+      if (!bcmp(a, "ARRAY", 5)) return token::make(token::tag::ARRAY, a, b);
+      if (!bcmp(a, "BEGIN", 5)) return token::make(token::tag::BEGIN, a, b);
+      if (!bcmp(a, "CONST", 5)) return token::make(token::tag::CONST, a, b);
+      if (!bcmp(a, "ELSIF", 5)) return token::make(token::tag::ELSIF, a, b);
+      if (!bcmp(a, "FALSE", 5)) return token::make(token::tag::FALSE, a, b);
+      if (!bcmp(a, "UNTIL", 5)) return token::make(token::tag::UNTIL, a, b);
+      if (!bcmp(a, "WHILE", 5)) return token::make(token::tag::WHILE, a, b);
+      break;
+    case 6:
+      if (!bcmp(a, "IMPORT", 6)) return token::make(token::tag::IMPORT, a, b);
+      if (!bcmp(a, "MODULE", 6)) return token::make(token::tag::MODULE, a, b);
+      if (!bcmp(a, "RECORD", 6)) return token::make(token::tag::RECORD, a, b);
+      if (!bcmp(a, "REPEAT", 6)) return token::make(token::tag::REPEAT, a, b);
+      if (!bcmp(a, "RETURN", 6)) return token::make(token::tag::RETURN, a, b);
+      break;
+    case 7:
+      if (!bcmp(a, "POINTER", 7)) return token::make(token::tag::POINTER, a, b);
+      break;
+    case 9:
+      if (!bcmp(a, "PROCEDURE", 9)) return token::make(token::tag::PROCEDURE, a, b);
+      break;
     }
 
     return token::make(token::tag::IDENTIFIER, a, b);
@@ -505,7 +543,14 @@ namespace lexer {
     return token::make(token::tag::ILLEGAL, a, b);
   }
 
-  token::t next__stop(table::t const &, char const * a, char const * b, char const *, state::t) {
+  token::t next__stop(table::t const &, char const * a, char const * b, char const * c, state::t) {
+    if (b != c) {
+      // Null byte in source. We produce an ILLEGAL token for each null byte,
+      // though perhaps we could coalesce such tokens.
+
+      return token::make(token::tag::ILLEGAL, a, b + 1);
+    }
+
     return token::make(token::tag::STOP, a, b);
   }
 
