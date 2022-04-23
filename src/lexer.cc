@@ -6,28 +6,37 @@ namespace lexer {
     enum t : u8 {
       DIGIT,
       DOT,
+      HASH,
       ILLEGAL,
+      LBRACKET,
       LETTER,
+      LINEBREAK,
+      LPAREN,
       OPERATOR,
       PUNCTUATION,
       QUOTE,
       SPACE,
       STOP,
+      UNDERSCORE,
     };
 
-    constexpr size_t COUNT = 9;
+    constexpr size_t COUNT = 14;
 
     char const * to_string(t t) {
       switch (t) {
         case DIGIT: return "DIGIT";
         case DOT: return "DOT";
         case ILLEGAL: return "ILLEGAL";
+        case LBRACKET: return "LBRACKET";
         case LETTER: return "LETTER";
+        case LINEBREAK: return "LINEBREAK";
+        case LPAREN: return "LPAREN";
         case OPERATOR: return "OPERATOR";
         case PUNCTUATION: return "PUNCTUATION";
         case QUOTE: return "QUOTE";
         case SPACE: return "SPACE";
         case STOP: return "STOP";
+        case UNDERSCORE: return "UNDERSCORE";
       }
 
       return "???";
@@ -44,10 +53,10 @@ namespace lexer {
       ILLEGAL,
       ILLEGAL,
       ILLEGAL,
-      SPACE,       // line feed
+      LINEBREAK,   // line feed
       ILLEGAL,
       ILLEGAL,
-      SPACE,       // carriage return
+      LINEBREAK,   // carriage return
       ILLEGAL,
       ILLEGAL,
       ILLEGAL,
@@ -67,14 +76,14 @@ namespace lexer {
       ILLEGAL,
       ILLEGAL,
       SPACE,       // ' '
-      ILLEGAL,     // !
+      OPERATOR,    // !
       QUOTE,       // "
-      OPERATOR,    // #
-      ILLEGAL,     // $
-      ILLEGAL,     // %
+      HASH,        // #
+      OPERATOR,    // $
+      OPERATOR,    // %
       OPERATOR,    // &
       ILLEGAL,     // '
-      PUNCTUATION, // (
+      LPAREN,      // (
       PUNCTUATION, // )
       OPERATOR,    // *
       OPERATOR,    // +
@@ -92,13 +101,13 @@ namespace lexer {
       DIGIT,       // 7
       DIGIT,       // 8
       DIGIT,       // 9
-      OPERATOR,    // :
+      PUNCTUATION, // :
       PUNCTUATION, // ;
       OPERATOR,    // <
       OPERATOR,    // =
       OPERATOR,    // >
-      ILLEGAL,     // ?
-      ILLEGAL,     // @
+      OPERATOR,    // ?
+      OPERATOR,    // @
       LETTER,      // A
       LETTER,      // B
       LETTER,      // C
@@ -125,11 +134,11 @@ namespace lexer {
       LETTER,      // X
       LETTER,      // Y
       LETTER,      // Z
-      PUNCTUATION, // [
-      ILLEGAL,     // 
+      LBRACKET,    // [
+      ILLEGAL,     // backslash
       PUNCTUATION, // ]
-      ILLEGAL,     // ^
-      ILLEGAL,     // _
+      OPERATOR,    // ^
+      UNDERSCORE,  // _
       ILLEGAL,     // `
       LETTER,      // a
       LETTER,      // b
@@ -296,32 +305,35 @@ namespace lexer {
   namespace state {
     enum t {
       START,
-      DOT,
+      COMMENT,
       IDENTIFIER,
-      ILLEGAL,
       NUMBER,
       OPERATOR,
+      STRING,
       COMPLETE_IDENTIFIER,
-      COMPLETE_ILLEGAL,
+      COMPLETE_IDENTIFIER_LBRACKET,
+      COMPLETE_IDENTIFIER_LPAREN,
+      COMPLETE_ILLEGAL_CHARACTER,
       COMPLETE_NUMBER,
       COMPLETE_OPERATOR,
       COMPLETE_PUNCTUATION,
+      COMPLETE_STRING,
+      COMPLETE_STRING_UNCLOSED,
       STOP,
     };
 
     constexpr size_t NONTERMINAL_COUNT = 6;
-    constexpr size_t COUNT = 12;
+    constexpr size_t COUNT = 16;
 
     char const * to_string(t t) {
       switch (t) {
         case START: return "START";
-        case DOT: return "DOT";
+        case COMMENT: return "COMMENT";
         case IDENTIFIER: return "IDENTIFIER";
-        case ILLEGAL: return "ILLEGAL";
         case NUMBER: return "NUMBER";
         case OPERATOR: return "OPERATOR";
         case COMPLETE_IDENTIFIER: return "COMPLETE_IDENTIFIER";
-        case COMPLETE_ILLEGAL: return "COMPLETE_ILLEGAL";
+        case COMPLETE_ILLEGAL_CHARACTER: return "COMPLETE_ILLEGAL_CHARACTER";
         case COMPLETE_NUMBER: return "COMPLETE_NUMBER";
         case COMPLETE_OPERATOR: return "COMPLETE_OPERATOR";
         case COMPLETE_PUNCTUATION: return "COMPLETE_PUNCTUATION";
@@ -335,27 +347,37 @@ namespace lexer {
       // START ->
       (array<t, kind::COUNT>) {
         NUMBER,
-        DOT,
-        ILLEGAL,
+        COMPLETE_PUNCTUATION,
+        COMMENT,
+        COMPLETE_ILLEGAL_CHARACTER,
+        COMPLETE_PUNCTUATION,
         IDENTIFIER,
+        START,
+        COMPLETE_PUNCTUATION,
         OPERATOR,
         COMPLETE_PUNCTUATION,
-        ILLEGAL,
+        STRING,
         START,
         STOP,
+        IDENTIFIER,
       },
 
-      // DOT
+      // COMMENT
       {
-        COMPLETE_OPERATOR,
-        DOT,
-        COMPLETE_OPERATOR,
-        COMPLETE_OPERATOR,
-        COMPLETE_OPERATOR,
-        COMPLETE_OPERATOR,
-        COMPLETE_OPERATOR,
-        COMPLETE_OPERATOR,
-        COMPLETE_OPERATOR,
+        COMMENT,
+        COMMENT,
+        COMMENT,
+        COMMENT,
+        COMMENT,
+        COMMENT,
+        START,
+        COMMENT,
+        COMMENT,
+        COMMENT,
+        COMMENT,
+        COMMENT,
+        STOP,
+        COMMENT,
       },
 
       // IDENTIFIER
@@ -363,31 +385,28 @@ namespace lexer {
         IDENTIFIER,
         COMPLETE_IDENTIFIER,
         COMPLETE_IDENTIFIER,
+        COMPLETE_IDENTIFIER,
+        COMPLETE_IDENTIFIER_LBRACKET,
         IDENTIFIER,
         COMPLETE_IDENTIFIER,
+        COMPLETE_IDENTIFIER_LPAREN,
         COMPLETE_IDENTIFIER,
         COMPLETE_IDENTIFIER,
         COMPLETE_IDENTIFIER,
         COMPLETE_IDENTIFIER,
-      },
-
-      // ILLEGAL
-      {
-        COMPLETE_ILLEGAL,
-        COMPLETE_ILLEGAL,
-        ILLEGAL,
-        COMPLETE_ILLEGAL,
-        COMPLETE_ILLEGAL,
-        COMPLETE_ILLEGAL,
-        ILLEGAL,
-        COMPLETE_ILLEGAL,
-        COMPLETE_ILLEGAL,
+        COMPLETE_IDENTIFIER,
+        IDENTIFIER,
       },
 
       // NUMBER
       {
         NUMBER,
         NUMBER,
+        COMPLETE_NUMBER,
+        COMPLETE_NUMBER,
+        COMPLETE_NUMBER,
+        COMPLETE_NUMBER,
+        COMPLETE_NUMBER,
         COMPLETE_NUMBER,
         COMPLETE_NUMBER,
         COMPLETE_NUMBER,
@@ -403,12 +422,36 @@ namespace lexer {
         COMPLETE_OPERATOR,
         COMPLETE_OPERATOR,
         COMPLETE_OPERATOR,
+        COMPLETE_OPERATOR,
+        COMPLETE_OPERATOR,
+        COMPLETE_OPERATOR,
+        COMPLETE_OPERATOR,
         OPERATOR,
         COMPLETE_OPERATOR,
         COMPLETE_OPERATOR,
         COMPLETE_OPERATOR,
         COMPLETE_OPERATOR,
+        COMPLETE_OPERATOR,
       },
+
+      // STRING
+      {
+        STRING,
+        STRING,
+        STRING,
+        STRING,
+        STRING,
+        STRING,
+        STRING,
+        STRING,
+        STRING,
+        STRING,
+        COMPLETE_STRING,
+        STRING,
+        COMPLETE_STRING_UNCLOSED,
+        STRING,
+      },
+
     };
   }
 
@@ -435,62 +478,41 @@ namespace lexer {
     [[clang::musttail]] return next__dispatch(table, a, b + 1, c, s);
   }
 
-  token::t next__complete_identifier(table::t const &, char const * a, char const * b, char const *, state::t) {
+  token::t next__complete_identifier(table::t const &, char const * a, char const * b, char const *, state::t s) {
     switch (b - a) {
     case 2:
-      if (!bcmp(a, "BY", 2)) return token::make(token::tag::BY, a, b);
-      if (!bcmp(a, "DO", 2)) return token::make(token::tag::DO, a, b);
-      if (!bcmp(a, "IF", 2)) return token::make(token::tag::IF, a, b);
-      if (!bcmp(a, "IN", 2)) return token::make(token::tag::IN, a, b);
-      if (!bcmp(a, "IS", 2)) return token::make(token::tag::IS, a, b);
-      if (!bcmp(a, "OF", 2)) return token::make(token::tag::OF, a, b);
-      if (!bcmp(a, "OR", 2)) return token::make(token::tag::OR, a, b);
-      if (!bcmp(a, "TO", 2)) return token::make(token::tag::TO, a, b);
+      if (!bcmp(a, "if", 2)) return token::make(token::tag::IF, a, b);
+      if (!bcmp(a, "or", 2)) return token::make(token::tag::OR, a, b);
       break;
     case 3:
-      if (!bcmp(a, "DIV", 3)) return token::make(token::tag::DIV, a, b);
-      if (!bcmp(a, "END", 3)) return token::make(token::tag::END, a, b);
-      if (!bcmp(a, "FOR", 3)) return token::make(token::tag::FOR, a, b);
-      if (!bcmp(a, "MOD", 3)) return token::make(token::tag::MOD, a, b);
-      if (!bcmp(a, "NIL", 3)) return token::make(token::tag::NIL, a, b);
-      if (!bcmp(a, "VAR", 3)) return token::make(token::tag::VAR, a, b);
+      if (!bcmp(a, "and", 3)) return token::make(token::tag::AND, a, b);
+      if (!bcmp(a, "end", 3)) return token::make(token::tag::END, a, b);
+      if (!bcmp(a, "for", 3)) return token::make(token::tag::FOR, a, b);
+      if (!bcmp(a, "fun", 3)) return token::make(token::tag::FUN, a, b);
+      if (!bcmp(a, "let", 3)) return token::make(token::tag::LET, a, b);
       break;
     case 4:
-      if (!bcmp(a, "CASE", 4)) return token::make(token::tag::CASE, a, b);
-      if (!bcmp(a, "ELSE", 4)) return token::make(token::tag::ELSE, a, b);
-      if (!bcmp(a, "THEN", 4)) return token::make(token::tag::THEN, a, b);
-      if (!bcmp(a, "TRUE", 4)) return token::make(token::tag::TRUE, a, b);
-      if (!bcmp(a, "TYPE", 4)) return token::make(token::tag::TYPE, a, b);
+      if (!bcmp(a, "else", 4)) return token::make(token::tag::ELSE, a, b);
+      if (!bcmp(a, "elif", 4)) return token::make(token::tag::ELIF, a, b);
+      if (!bcmp(a, "loop", 4)) return token::make(token::tag::LOOP, a, b);
       break;
     case 5:
-      if (!bcmp(a, "ARRAY", 5)) return token::make(token::tag::ARRAY, a, b);
-      if (!bcmp(a, "BEGIN", 5)) return token::make(token::tag::BEGIN, a, b);
-      if (!bcmp(a, "CONST", 5)) return token::make(token::tag::CONST, a, b);
-      if (!bcmp(a, "ELSIF", 5)) return token::make(token::tag::ELSIF, a, b);
-      if (!bcmp(a, "FALSE", 5)) return token::make(token::tag::FALSE, a, b);
-      if (!bcmp(a, "UNTIL", 5)) return token::make(token::tag::UNTIL, a, b);
-      if (!bcmp(a, "WHILE", 5)) return token::make(token::tag::WHILE, a, b);
-      break;
-    case 6:
-      if (!bcmp(a, "IMPORT", 6)) return token::make(token::tag::IMPORT, a, b);
-      if (!bcmp(a, "MODULE", 6)) return token::make(token::tag::MODULE, a, b);
-      if (!bcmp(a, "RECORD", 6)) return token::make(token::tag::RECORD, a, b);
-      if (!bcmp(a, "REPEAT", 6)) return token::make(token::tag::REPEAT, a, b);
-      if (!bcmp(a, "RETURN", 6)) return token::make(token::tag::RETURN, a, b);
-      break;
-    case 7:
-      if (!bcmp(a, "POINTER", 7)) return token::make(token::tag::POINTER, a, b);
-      break;
-    case 9:
-      if (!bcmp(a, "PROCEDURE", 9)) return token::make(token::tag::PROCEDURE, a, b);
+      if (!bcmp(a, "break", 5)) return token::make(token::tag::BREAK, a, b);
+      if (!bcmp(a, "while", 5)) return token::make(token::tag::WHILE, a, b);
       break;
     }
+
+    if (s == state::COMPLETE_IDENTIFIER_LBRACKET)
+      return token::make(token::tag::IDENTIFIER_LBRACKET, a, b + 1);
+
+    if (s == state::COMPLETE_IDENTIFIER_LPAREN)
+      return token::make(token::tag::IDENTIFIER_LPAREN, a, b + 1);
 
     return token::make(token::tag::IDENTIFIER, a, b);
   }
 
-  token::t next__complete_illegal(table::t const &, char const * a, char const * b, char const *, state::t) {
-    return token::make(token::tag::ILLEGAL, a, b);
+  token::t next__complete_illegal_character(table::t const &, char const * a, char const * b, char const *, state::t) {
+    return token::make(token::tag::ILLEGAL, a, b + 1);
   }
 
   token::t next__complete_number(table::t const &, char const * a, char const * b, char const *, state::t) {
@@ -500,58 +522,63 @@ namespace lexer {
   token::t next__complete_operator(table::t const &, char const * a, char const * b, char const *, state::t) {
     if (b - a == 1) {
       switch (* a) {
+        case '=': return token::make(token::tag::ASSIGN, a, b);
+        case '<': return token::make(token::tag::LT, a, b);
+        case '>': return token::make(token::tag::GT, a, b);
         case '+': return token::make(token::tag::PLUS, a, b);
         case '-': return token::make(token::tag::MINUS, a, b);
         case '*': return token::make(token::tag::STAR, a, b);
         case '/': return token::make(token::tag::SLASH, a, b);
-        case '~': return token::make(token::tag::TILDE, a, b);
         case '&': return token::make(token::tag::AMPERSAND, a, b);
-        case '.': return token::make(token::tag::DOT, a, b);
-        case '|': return token::make(token::tag::PIPE, a, b);
+        case '@': return token::make(token::tag::AT, a, b);
+        case '!': return token::make(token::tag::BANG, a, b);
         case '^': return token::make(token::tag::CARET, a, b);
-        case '=': return token::make(token::tag::EQUAL, a, b);
-        case '#': return token::make(token::tag::HASH, a, b);
-        case '<': return token::make(token::tag::LT, a, b);
-        case '>': return token::make(token::tag::GT, a, b);
-        case ':': return token::make(token::tag::COLON, a, b);
+        case '$': return token::make(token::tag::DOLLAR, a, b);
+        case '%': return token::make(token::tag::PERCENT, a, b);
+        case '|': return token::make(token::tag::PIPE, a, b);
+        case '?': return token::make(token::tag::QUERY, a, b);
+        case '~': return token::make(token::tag::TILDE, a, b);
       }
     }
     else if (b - a == 2) {
-      if (!bcmp(a, ":=", 2)) return token::make(token::tag::ASSIGNMENT, a, b);
+      if (!bcmp(a, "==", 2)) return token::make(token::tag::EQ, a, b);
+      if (!bcmp(a, "!=", 2)) return token::make(token::tag::NE, a, b);
       if (!bcmp(a, "<=", 2)) return token::make(token::tag::LE, a, b);
       if (!bcmp(a, ">=", 2)) return token::make(token::tag::GE, a, b);
-      if (!bcmp(a, "..", 2)) return token::make(token::tag::DOTDOT, a, b);
     }
 
     return token::make(token::tag::ILLEGAL, a, b);
+  }
+
+  token::t next__complete_string(table::t const &, char const * a, char const * b, char const *, state::t s) {
+    if (s == state::COMPLETE_STRING_UNCLOSED)
+      return token::make(token::tag::ILLEGAL, a, b);
+
+    return token::make(token::tag::STRING, a, b + 1);
   }
 
   token::t next__complete_punctuation(table::t const &, char const * a, char const * b, char const *, state::t) {
-    b = b + 1;
-
     switch (* a) {
-      case ',': return token::make(token::tag::COMMA, a, b);
-      case ';': return token::make(token::tag::SEMICOLON, a, b);
-      case '(': return token::make(token::tag::LPARENTHESIS, a, b);
-      case '[': return token::make(token::tag::LBRACKET, a, b);
-      case '{': return token::make(token::tag::LBRACE, a, b);
-      case ')': return token::make(token::tag::RPARENTHESIS, a, b);
-      case ']': return token::make(token::tag::RBRACKET, a, b);
-      case '}': return token::make(token::tag::RBRACE, a, b);
+      case ':': return token::make(token::tag::COLON, a, b + 1);
+      case ',': return token::make(token::tag::COMMA, a, b + 1);
+      case '.': return token::make(token::tag::DOT, a, b + 1);
+      case ';': return token::make(token::tag::SEMICOLON, a, b + 1);
+      case '(': return token::make(token::tag::LPAREN, a, b + 1);
+      case '[': return token::make(token::tag::LBRACKET, a, b + 1);
+      case '{': return token::make(token::tag::LBRACE, a, b + 1);
+      case ')': return token::make(token::tag::RPAREN, a, b + 1);
+      case ']': return token::make(token::tag::RBRACKET, a, b + 1);
+      case '}': return token::make(token::tag::RBRACE, a, b + 1);
     }
 
-    return token::make(token::tag::ILLEGAL, a, b);
+    return token::make(token::tag::ILLEGAL, a, b + 1);
   }
 
-  token::t next__stop(table::t const &, char const * a, char const * b, char const * c, state::t) {
-    if (b != c) {
-      // Null byte in source. We produce an ILLEGAL token for each null byte,
-      // though perhaps we could coalesce such tokens.
-
-      return token::make(token::tag::ILLEGAL, a, b + 1);
-    }
-
-    return token::make(token::tag::STOP, a, b);
+  token::t next__stop(table::t const &, char const *, char const * b, char const * c, state::t) {
+    if (b != c)
+      return token::make(token::tag::ILLEGAL, b, b + 1);
+    else
+      return token::make(token::tag::STOP, b, b);
   }
 
   constexpr table::t global_table = {
@@ -565,10 +592,14 @@ namespace lexer {
       next__continue,
       next__continue,
       next__complete_identifier,
-      next__complete_illegal,
+      next__complete_identifier,
+      next__complete_identifier,
+      next__complete_illegal_character,
       next__complete_number,
       next__complete_operator,
       next__complete_punctuation,
+      next__complete_string,
+      next__complete_string,
       next__stop,
     }
   };

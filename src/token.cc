@@ -1,68 +1,74 @@
 namespace token {
   namespace tag {
     enum t : u8 {
+      // special
+
       STOP,
       ILLEGAL,
+
+      // identifier
+
       IDENTIFIER,
+      IDENTIFIER_LPAREN,   // foo(
+      IDENTIFIER_LBRACKET, // foo[
+
+      // literal
+
       NUMBER,
-      PLUS,         // +
-      MINUS,        // -
-      STAR,         // *
-      SLASH,        // /
-      TILDE,        // ~
-      AMPERSAND,    // &
-      DOT,          // .
-      COMMA,        // ,
-      SEMICOLON,    // ;
-      PIPE,         // |
-      LPARENTHESIS, // (
-      LBRACKET,     // [
-      LBRACE,       // {
-      ASSIGNMENT,   // :=
-      CARET,        // ^
-      EQUAL,        // =
-      HASH,         // #
-      LT,           // <
-      GT,           // >
-      LE,           // <=
-      GE,           // >=
-      DOTDOT,       // ..
-      COLON,        // :
-      RPARENTHESIS, // )
-      RBRACKET,     // ]
-      RBRACE,       // }
-			ARRAY,
-      BEGIN,
-      BY,
-      CASE,
-      CONST,
-      DIV,
-      DO,
+      STRING,
+
+      // punctuation
+
+      COLON,     // :
+      COMMA,     // ,
+      DOT,       // .
+      SEMICOLON, // ;
+      LPAREN,    // (
+      LBRACKET,  // [
+      LBRACE,    // {
+      RPAREN,    // )
+      RBRACKET,  // ]
+      RBRACE,    // }
+
+      // operator
+
+      ASSIGN,    // =
+
+      EQ,        // ==
+      NE,        // !=
+      LT,        // <
+      GT,        // >
+      LE,        // <=
+      GE,        // >=
+
+      PLUS,      // +
+      MINUS,     // -
+      STAR,      // *
+      SLASH,     // /
+
+      AMPERSAND, // &
+      AT,        // @
+      BANG,      // !
+      CARET,     // ^
+      DOLLAR,    // $
+      PERCENT,   // %
+      PIPE,      // |
+      QUERY,     // ?
+      TILDE,     // ~
+
+      // keyword
+
+      AND,
+      BREAK,
+      ELIF,
       ELSE,
-      ELSIF,
       END,
-      FALSE,
       FOR,
+      FUN,
       IF,
-      IMPORT,
-      IN,
-      IS,
-      MOD,
-      MODULE,
-      NIL,
-      OF,
+      LET,
+      LOOP,
       OR,
-      POINTER,
-      PROCEDURE,
-      RECORD,
-      REPEAT,
-      RETURN,
-      THEN,
-      TO,
-      TRUE,
-      TYPE,
-      UNTIL,
-      VAR,
       WHILE,
     };
 
@@ -71,66 +77,52 @@ namespace token {
         case STOP: return "STOP";
         case ILLEGAL: return "ILLEGAL";
         case IDENTIFIER: return "IDENTIFIER";
+        case IDENTIFIER_LPAREN: return "IDENTIFIER_LPAREN";
+        case IDENTIFIER_LBRACKET: return "IDENTIFIER_LBRACKET";
         case NUMBER: return "NUMBER";
-        case PLUS: return "PLUS";
-        case MINUS: return "MINUS";
-        case STAR: return "STAR";
-        case SLASH: return "SLASH";
-        case TILDE: return "TILDE";
-        case AMPERSAND: return "AMPERSAND";
-        case DOT: return "DOT";
+        case STRING: return "STRING";
+        case COLON: return "COLON";
         case COMMA: return "COMMA";
+        case DOT: return "DOT";
         case SEMICOLON: return "SEMICOLON";
-        case PIPE: return "PIPE";
-        case LPARENTHESIS: return "LPARENTHESIS";
+        case LPAREN: return "LPAREN";
         case LBRACKET: return "LBRACKET";
         case LBRACE: return "LBRACE";
-        case ASSIGNMENT: return "ASSIGNMENT";
-        case CARET: return "CARET";
-        case EQUAL: return "EQUAL";
-        case HASH: return "HASH";
+        case RPAREN: return "RPAREN";
+        case RBRACKET: return "RBRACKET";
+        case RBRACE: return "RBRACE";
+        case ASSIGN: return "ASSIGN";
+        case EQ: return "EQ";
+        case NE: return "NE";
         case LT: return "LT";
         case GT: return "GT";
         case LE: return "LE";
         case GE: return "GE";
-        case DOTDOT: return "DOTDOT";
-        case COLON: return "COLON";
-        case RPARENTHESIS: return "RPARENTHESIS";
-        case RBRACKET: return "RBRACKET";
-        case RBRACE: return "RBRACE";
-        case ARRAY: return "ARRAY";
-        case BEGIN: return "BEGIN";
-        case BY: return "BY";
-        case CASE: return "CASE";
-        case CONST: return "CONST";
-        case DIV: return "DIV";
-        case DO: return "DO";
+        case PLUS: return "PLUS";
+        case MINUS: return "MINUS";
+        case STAR: return "STAR";
+        case SLASH: return "SLASH";
+        case AMPERSAND: return "AMPERSAND";
+        case AT: return "AT";
+        case BANG: return "BANG";
+        case CARET: return "CARET";
+        case DOLLAR: return "DOLLAR";
+        case PERCENT: return "PERCENT";
+        case PIPE: return "PIPE";
+        case QUERY: return "QUERY";
+        case TILDE: return "TILDE";
+        case AND: return "AND";
+        case BREAK: return "BREAK";
+        case ELIF: return "ELIF";
         case ELSE: return "ELSE";
-        case ELSIF: return "ELSIF";
         case END: return "END";
-        case FALSE: return "FALSE";
         case FOR: return "FOR";
+        case FUN: return "FUN";
         case IF: return "IF";
-        case IMPORT: return "IMPORT";
-        case IN: return "IN";
-        case IS: return "IS";
-        case MOD: return "MOD";
-        case MODULE: return "MODULE";
-        case NIL: return "NIL";
-        case OF: return "OF";
+        case LET: return "LET";
+        case LOOP: return "LOOP";
         case OR: return "OR";
-        case POINTER: return "???";
-        case PROCEDURE: return "???";
-        case RECORD: return "???";
-        case REPEAT: return "???";
-        case RETURN: return "???";
-        case THEN: return "???";
-        case TO: return "TO";
-        case TRUE: return "???";
-        case TYPE: return "???";
-        case UNTIL: return "???";
-        case VAR: return "???";
-        case WHILE: return "???";
+        case WHILE: return "WHILE";
       }
 
       return "???";

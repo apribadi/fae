@@ -21,4 +21,4 @@ bin/fae: src/*.cc
 		src/fae.cc
 
 test: bin/fae
-	./bin/fae test/example.ob07
+	./bin/fae test/example.fae
