@@ -13,7 +13,8 @@ bar []
 & @ ! ^ $ % | ? ~
 123.456
 123.456.789
-and break elif else end for fun if let loop or while
+and break elif else end for fun if let loop or return while
+=..
 `
 '
 !!!

@@ -282,140 +282,159 @@ namespace lexer {
 
   namespace state {
     enum t {
-      START,
       RESTART,
+      START,
       COMMENT,
+      DOT,
       IDENTIFIER,
       NUMBER,
       OPERATOR,
       STRING,
       STOP,
+      STOP_DOT,
       STOP_IDENTIFIER,
       STOP_ILLEGAL_CHARACTER,
+      STOP_ILLEGAL_TOKEN,
       STOP_NUMBER,
       STOP_OPERATOR,
       STOP_PUNCTUATION,
+      STOP_PUNCTUATION_NOSPACE,
       STOP_STRING,
-      STOP_STRING_UNCLOSED,
     };
 
-    constexpr size_t NUM_NONTERMINAL = 7;
-    constexpr size_t NUM_TERMINAL = 8;
+    constexpr size_t NUM_NONTERMINAL = 8;
+    constexpr size_t NUM_TERMINAL = 10;
     constexpr size_t NUM = NUM_NONTERMINAL + NUM_TERMINAL;
 
+    constexpr array<t, kind::NUM> transition_restart = {
+      NUMBER,
+      DOT,
+      COMMENT,
+      STOP_ILLEGAL_CHARACTER,
+      IDENTIFIER,
+      RESTART,
+      OPERATOR,
+      STOP_PUNCTUATION,
+      STRING,
+      RESTART,
+      STOP,
+      IDENTIFIER,
+    };
+
+    constexpr array<t, kind::NUM> transition_start = {
+      NUMBER,
+      DOT,
+      COMMENT,
+      STOP_ILLEGAL_CHARACTER,
+      IDENTIFIER,
+      RESTART,
+      OPERATOR,
+      STOP_PUNCTUATION_NOSPACE,
+      STRING,
+      RESTART,
+      STOP,
+      IDENTIFIER,
+    };
+
+    constexpr array<t, kind::NUM> transition_comment = {
+      COMMENT,
+      COMMENT,
+      COMMENT,
+      COMMENT,
+      COMMENT,
+      RESTART,
+      COMMENT,
+      COMMENT,
+      COMMENT,
+      COMMENT,
+      STOP,
+      COMMENT,
+    };
+
+    constexpr array<t, kind::NUM> transition_dot = {
+      STOP_DOT,
+      DOT,
+      STOP_DOT,
+      STOP_DOT,
+      STOP_DOT,
+      STOP_DOT,
+      STOP_DOT,
+      STOP_DOT,
+      STOP_DOT,
+      STOP_DOT,
+      STOP_DOT,
+      STOP_DOT,
+    };
+
+    constexpr array<t, kind::NUM> transition_identifier = {
+      IDENTIFIER,
+      STOP_IDENTIFIER,
+      STOP_IDENTIFIER,
+      STOP_IDENTIFIER,
+      IDENTIFIER,
+      STOP_IDENTIFIER,
+      STOP_IDENTIFIER,
+      STOP_IDENTIFIER,
+      STOP_IDENTIFIER,
+      STOP_IDENTIFIER,
+      STOP_IDENTIFIER,
+      IDENTIFIER,
+    };
+
+    constexpr array<t, kind::NUM> transition_number = {
+      NUMBER,
+      NUMBER,
+      STOP_NUMBER,
+      STOP_NUMBER,
+      STOP_NUMBER,
+      STOP_NUMBER,
+      STOP_NUMBER,
+      STOP_NUMBER,
+      STOP_NUMBER,
+      STOP_NUMBER,
+      STOP_NUMBER,
+      STOP_NUMBER,
+    };
+
+    constexpr array<t, kind::NUM> transition_operator = {
+      STOP_OPERATOR,
+      STOP_OPERATOR,
+      STOP_OPERATOR,
+      STOP_OPERATOR,
+      STOP_OPERATOR,
+      STOP_OPERATOR,
+      OPERATOR,
+      STOP_OPERATOR,
+      STOP_OPERATOR,
+      STOP_OPERATOR,
+      STOP_OPERATOR,
+      STOP_OPERATOR,
+    };
+
+    constexpr array<t, kind::NUM> transition_string = {
+      STRING,
+      STRING,
+      STRING,
+      STRING,
+      STRING,
+      STRING,
+      STRING,
+      STRING,
+      STOP_STRING,
+      STRING,
+      STOP_ILLEGAL_TOKEN,
+      STRING,
+    };
+
     constexpr array<array<t, kind::NUM>, NUM_NONTERMINAL> transition = {
-      // START ->
-      (array<t, kind::NUM>) {
-        NUMBER,
-        STOP_PUNCTUATION,
-        COMMENT,
-        STOP_ILLEGAL_CHARACTER,
-        IDENTIFIER,
-        RESTART,
-        OPERATOR,
-        STOP_PUNCTUATION,
-        STRING,
-        RESTART,
-        STOP,
-        IDENTIFIER,
-      },
-
-      // RESTART ->
-      {
-        NUMBER,
-        STOP_PUNCTUATION,
-        COMMENT,
-        STOP_ILLEGAL_CHARACTER,
-        IDENTIFIER,
-        RESTART,
-        OPERATOR,
-        STOP_PUNCTUATION,
-        STRING,
-        RESTART,
-        STOP,
-        IDENTIFIER,
-      },
-
-      // COMMENT
-      {
-        COMMENT,
-        COMMENT,
-        COMMENT,
-        COMMENT,
-        COMMENT,
-        RESTART,
-        COMMENT,
-        COMMENT,
-        COMMENT,
-        COMMENT,
-        STOP,
-        COMMENT,
-      },
-
-      // IDENTIFIER
-      {
-        IDENTIFIER,
-        STOP_IDENTIFIER,
-        STOP_IDENTIFIER,
-        STOP_IDENTIFIER,
-        IDENTIFIER,
-        STOP_IDENTIFIER,
-        STOP_IDENTIFIER,
-        STOP_IDENTIFIER,
-        STOP_IDENTIFIER,
-        STOP_IDENTIFIER,
-        STOP_IDENTIFIER,
-        IDENTIFIER,
-      },
-
-      // NUMBER
-      {
-        NUMBER,
-        NUMBER,
-        STOP_NUMBER,
-        STOP_NUMBER,
-        STOP_NUMBER,
-        STOP_NUMBER,
-        STOP_NUMBER,
-        STOP_NUMBER,
-        STOP_NUMBER,
-        STOP_NUMBER,
-        STOP_NUMBER,
-        STOP_NUMBER,
-      },
-
-      // OPERATOR
-      {
-        STOP_OPERATOR,
-        STOP_OPERATOR,
-        STOP_OPERATOR,
-        STOP_OPERATOR,
-        STOP_OPERATOR,
-        STOP_OPERATOR,
-        OPERATOR,
-        STOP_OPERATOR,
-        STOP_OPERATOR,
-        STOP_OPERATOR,
-        STOP_OPERATOR,
-        STOP_OPERATOR,
-      },
-
-      // STRING
-      {
-        STRING,
-        STRING,
-        STRING,
-        STRING,
-        STRING,
-        STRING,
-        STRING,
-        STRING,
-        STOP_STRING,
-        STRING,
-        STOP_STRING_UNCLOSED,
-        STRING,
-      },
-
+      transition_restart,
+      transition_start,
+      transition_comment,
+      transition_dot,
+      transition_identifier,
+      transition_number,
+      transition_operator,
+      transition_string,
     };
   }
 
@@ -428,18 +447,30 @@ namespace lexer {
     };
   }
 
-  __attribute__ ((always_inline))
-  token::t next__dispatch(table::t const & table, char const * a, char const * b, char const * c, state::t s) {
+  token::t next__start(table::t const & table, char const * a, char const * b) {
+    state::t s = table.transition[state::START][table.kind[static_cast<unsigned char>(* a)]];
+    return table.jump[s](table, a, a, b, s);
+  }
+
+  token::t next__continue(table::t const & table, char const * a, char const * b, char const * c, state::t s) {
+    a = s ? a : b + 1;
+    b = b + 1;
     s = table.transition[s][table.kind[static_cast<unsigned char>(* b)]];
     [[clang::musttail]] return table.jump[s](table, a, b, c, s);
   }
 
-  token::t next__restart(table::t const & table, char const *, char const * b, char const * c, state::t s) {
-    [[clang::musttail]] return next__dispatch(table, b + 1, b + 1, c, s);
+  token::t next__stop(table::t const &, char const *, char const * b, char const * c, state::t) {
+    if (b != c)
+      return token::make(token::tag::ILLEGAL, b, b + 1);
+
+    return token::make(token::tag::STOP, b, b);
   }
 
-  token::t next__continue(table::t const & table, char const * a, char const * b, char const * c, state::t s) {
-    [[clang::musttail]] return next__dispatch(table, a, b + 1, c, s);
+  token::t next__stop_dot(table::t const &, char const * a, char const * b, char const *, state::t) {
+    if (b - a == 1)
+      return token::make(token::tag::DOT, a, b);
+
+    return token::make(token::tag::ILLEGAL, a, b);
   }
 
   token::t next__stop_identifier(table::t const &, char const * a, char const * b, char const *, state::t) {
@@ -464,6 +495,9 @@ namespace lexer {
       if (!bcmp(a, "break", 5)) return token::make(token::tag::BREAK, a, b);
       if (!bcmp(a, "while", 5)) return token::make(token::tag::WHILE, a, b);
       break;
+    case 6:
+      if (!bcmp(a, "return", 5)) return token::make(token::tag::RETURN, a, b);
+      break;
     }
 
     return token::make(token::tag::IDENTIFIER, a, b);
@@ -471,6 +505,10 @@ namespace lexer {
 
   token::t next__stop_illegal_character(table::t const &, char const * a, char const * b, char const *, state::t) {
     return token::make(token::tag::ILLEGAL, a, b + 1);
+  }
+
+  token::t next__stop_illegal_token(table::t const &, char const * a, char const * b, char const *, state::t) {
+    return token::make(token::tag::ILLEGAL, a, b);
   }
 
   token::t next__stop_number(table::t const &, char const * a, char const * b, char const *, state::t) {
@@ -508,10 +546,7 @@ namespace lexer {
     return token::make(token::tag::ILLEGAL, a, b);
   }
 
-  token::t next__stop_string(table::t const &, char const * a, char const * b, char const *, state::t s) {
-    if (s == state::STOP_STRING_UNCLOSED)
-      return token::make(token::tag::ILLEGAL, a, b);
-
+  token::t next__stop_string(table::t const &, char const * a, char const * b, char const *, state::t) {
     return token::make(token::tag::STRING, a, b + 1);
   }
 
@@ -519,7 +554,6 @@ namespace lexer {
     switch (* a) {
       case ':': return token::make(token::tag::COLON, a, b + 1);
       case ',': return token::make(token::tag::COMMA, a, b + 1);
-      case '.': return token::make(token::tag::DOT, a, b + 1);
       case ';': return token::make(token::tag::SEMICOLON, a, b + 1);
       case '(': return token::make(token::tag::LPAREN, a, b + 1);
       case '[': return token::make(token::tag::LBRACKET, a, b + 1);
@@ -532,31 +566,43 @@ namespace lexer {
     return token::make(token::tag::ILLEGAL, a, b + 1);
   }
 
-  token::t next__stop(table::t const &, char const *, char const * b, char const * c, state::t) {
-    if (b != c)
-      return token::make(token::tag::ILLEGAL, b, b + 1);
-    else
-      return token::make(token::tag::STOP, b, b);
+  token::t next__stop_punctuation_nospace(table::t const &, char const * a, char const * b, char const *, state::t) {
+    switch (* a) {
+      case ':': return token::make(token::tag::COLON, a, b + 1);
+      case ',': return token::make(token::tag::COMMA, a, b + 1);
+      case ';': return token::make(token::tag::SEMICOLON, a, b + 1);
+      case '(': return token::make(token::tag::LPAREN_NOSPACE, a, b + 1);
+      case '[': return token::make(token::tag::LBRACKET_NOSPACE, a, b + 1);
+      case '{': return token::make(token::tag::LBRACE, a, b + 1);
+      case ')': return token::make(token::tag::RPAREN, a, b + 1);
+      case ']': return token::make(token::tag::RBRACKET, a, b + 1);
+      case '}': return token::make(token::tag::RBRACE, a, b + 1);
+    }
+
+    return token::make(token::tag::ILLEGAL, a, b + 1);
   }
 
   constexpr table::t global_table = {
     kind::table,
     state::transition,
     {
+      next__continue,
       NULL,
-      next__restart,
+      next__continue,
       next__continue,
       next__continue,
       next__continue,
       next__continue,
       next__continue,
       next__stop,
+      next__stop_dot,
       next__stop_identifier,
       next__stop_illegal_character,
+      next__stop_illegal_token,
       next__stop_number,
       next__stop_operator,
       next__stop_punctuation,
-      next__stop_string,
+      next__stop_punctuation_nospace,
       next__stop_string,
     }
   };
@@ -580,7 +626,7 @@ namespace lexer {
     }
 
     token::t next() {
-      token::t token = next__dispatch(global_table, current, current, stop, state::START);
+      token::t token = next__start(global_table, current, stop);
       current = token.stop;
       return token;
     }

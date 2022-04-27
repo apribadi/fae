@@ -69,6 +69,7 @@ namespace token {
       LET,
       LOOP,
       OR,
+      RETURN,
       WHILE,
     };
 
@@ -122,6 +123,7 @@ namespace token {
         case LET: return "LET";
         case LOOP: return "LOOP";
         case OR: return "OR";
+        case RETURN: return "RETURN";
         case WHILE: return "WHILE";
       }
 
