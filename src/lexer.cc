@@ -1,7 +1,4 @@
 namespace lexer {
-  // TODO: lex comments
-  // TODO: lex string literals
-
   namespace kind {
     enum t : u8 {
       DIGIT,
