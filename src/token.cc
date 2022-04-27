@@ -9,8 +9,6 @@ namespace token {
       // identifier
 
       IDENTIFIER,
-      IDENTIFIER_LPAREN,   // foo(
-      IDENTIFIER_LBRACKET, // foo[
 
       // literal
 
@@ -19,16 +17,18 @@ namespace token {
 
       // punctuation
 
-      COLON,     // :
-      COMMA,     // ,
-      DOT,       // .
-      SEMICOLON, // ;
-      LPAREN,    // (
-      LBRACKET,  // [
-      LBRACE,    // {
-      RPAREN,    // )
-      RBRACKET,  // ]
-      RBRACE,    // }
+      COLON,            // :
+      COMMA,            // ,
+      DOT,              // .
+      SEMICOLON,        // ;
+      LPAREN,           // (
+      LPAREN_NOSPACE,   // (
+      LBRACKET,         // [
+      LBRACKET_NOSPACE, // [
+      LBRACE,           // {
+      RPAREN,           // )
+      RBRACKET,         // ]
+      RBRACE,           // }
 
       // operator
 
@@ -77,8 +77,6 @@ namespace token {
         case STOP: return "STOP";
         case ILLEGAL: return "ILLEGAL";
         case IDENTIFIER: return "IDENTIFIER";
-        case IDENTIFIER_LPAREN: return "IDENTIFIER_LPAREN";
-        case IDENTIFIER_LBRACKET: return "IDENTIFIER_LBRACKET";
         case NUMBER: return "NUMBER";
         case STRING: return "STRING";
         case COLON: return "COLON";
@@ -86,7 +84,9 @@ namespace token {
         case DOT: return "DOT";
         case SEMICOLON: return "SEMICOLON";
         case LPAREN: return "LPAREN";
+        case LPAREN_NOSPACE: return "LPAREN_NOSPACE";
         case LBRACKET: return "LBRACKET";
+        case LBRACKET_NOSPACE: return "LBRACKET_NOSPACE";
         case LBRACE: return "LBRACE";
         case RPAREN: return "RPAREN";
         case RBRACKET: return "RBRACKET";

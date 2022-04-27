@@ -8,10 +8,8 @@ namespace lexer {
       DOT,
       HASH,
       ILLEGAL,
-      LBRACKET,
       LETTER,
       LINEBREAK,
-      LPAREN,
       OPERATOR,
       PUNCTUATION,
       QUOTE,
@@ -20,27 +18,7 @@ namespace lexer {
       UNDERSCORE,
     };
 
-    constexpr size_t COUNT = 14;
-
-    char const * to_string(t t) {
-      switch (t) {
-        case DIGIT: return "DIGIT";
-        case DOT: return "DOT";
-        case ILLEGAL: return "ILLEGAL";
-        case LBRACKET: return "LBRACKET";
-        case LETTER: return "LETTER";
-        case LINEBREAK: return "LINEBREAK";
-        case LPAREN: return "LPAREN";
-        case OPERATOR: return "OPERATOR";
-        case PUNCTUATION: return "PUNCTUATION";
-        case QUOTE: return "QUOTE";
-        case SPACE: return "SPACE";
-        case STOP: return "STOP";
-        case UNDERSCORE: return "UNDERSCORE";
-      }
-
-      return "???";
-    }
+    constexpr size_t NUM = 12;
 
     constexpr array<t, 256> table = {
       STOP,
@@ -83,7 +61,7 @@ namespace lexer {
       OPERATOR,    // %
       OPERATOR,    // &
       ILLEGAL,     // '
-      LPAREN,      // (
+      PUNCTUATION, // (
       PUNCTUATION, // )
       OPERATOR,    // *
       OPERATOR,    // +
@@ -134,7 +112,7 @@ namespace lexer {
       LETTER,      // X
       LETTER,      // Y
       LETTER,      // Z
-      LBRACKET,    // [
+      PUNCTUATION, // [
       ILLEGAL,     // backslash
       PUNCTUATION, // ]
       OPERATOR,    // ^
@@ -305,59 +283,55 @@ namespace lexer {
   namespace state {
     enum t {
       START,
+      RESTART,
       COMMENT,
       IDENTIFIER,
       NUMBER,
       OPERATOR,
       STRING,
-      COMPLETE_IDENTIFIER,
-      COMPLETE_IDENTIFIER_LBRACKET,
-      COMPLETE_IDENTIFIER_LPAREN,
-      COMPLETE_ILLEGAL_CHARACTER,
-      COMPLETE_NUMBER,
-      COMPLETE_OPERATOR,
-      COMPLETE_PUNCTUATION,
-      COMPLETE_STRING,
-      COMPLETE_STRING_UNCLOSED,
       STOP,
+      STOP_IDENTIFIER,
+      STOP_ILLEGAL_CHARACTER,
+      STOP_NUMBER,
+      STOP_OPERATOR,
+      STOP_PUNCTUATION,
+      STOP_STRING,
+      STOP_STRING_UNCLOSED,
     };
 
-    constexpr size_t NONTERMINAL_COUNT = 6;
-    constexpr size_t COUNT = 16;
+    constexpr size_t NUM_NONTERMINAL = 7;
+    constexpr size_t NUM_TERMINAL = 8;
+    constexpr size_t NUM = NUM_NONTERMINAL + NUM_TERMINAL;
 
-    char const * to_string(t t) {
-      switch (t) {
-        case START: return "START";
-        case COMMENT: return "COMMENT";
-        case IDENTIFIER: return "IDENTIFIER";
-        case NUMBER: return "NUMBER";
-        case OPERATOR: return "OPERATOR";
-        case COMPLETE_IDENTIFIER: return "COMPLETE_IDENTIFIER";
-        case COMPLETE_ILLEGAL_CHARACTER: return "COMPLETE_ILLEGAL_CHARACTER";
-        case COMPLETE_NUMBER: return "COMPLETE_NUMBER";
-        case COMPLETE_OPERATOR: return "COMPLETE_OPERATOR";
-        case COMPLETE_PUNCTUATION: return "COMPLETE_PUNCTUATION";
-        case STOP: return "STOP";
-      }
-
-      return "???";
-    }
-
-    constexpr array<array<t, kind::COUNT>, NONTERMINAL_COUNT> transition = {
+    constexpr array<array<t, kind::NUM>, NUM_NONTERMINAL> transition = {
       // START ->
-      (array<t, kind::COUNT>) {
+      (array<t, kind::NUM>) {
         NUMBER,
-        COMPLETE_PUNCTUATION,
+        STOP_PUNCTUATION,
         COMMENT,
-        COMPLETE_ILLEGAL_CHARACTER,
-        COMPLETE_PUNCTUATION,
+        STOP_ILLEGAL_CHARACTER,
         IDENTIFIER,
-        START,
-        COMPLETE_PUNCTUATION,
+        RESTART,
         OPERATOR,
-        COMPLETE_PUNCTUATION,
+        STOP_PUNCTUATION,
         STRING,
-        START,
+        RESTART,
+        STOP,
+        IDENTIFIER,
+      },
+
+      // RESTART ->
+      {
+        NUMBER,
+        STOP_PUNCTUATION,
+        COMMENT,
+        STOP_ILLEGAL_CHARACTER,
+        IDENTIFIER,
+        RESTART,
+        OPERATOR,
+        STOP_PUNCTUATION,
+        STRING,
+        RESTART,
         STOP,
         IDENTIFIER,
       },
@@ -369,9 +343,7 @@ namespace lexer {
         COMMENT,
         COMMENT,
         COMMENT,
-        COMMENT,
-        START,
-        COMMENT,
+        RESTART,
         COMMENT,
         COMMENT,
         COMMENT,
@@ -383,18 +355,16 @@ namespace lexer {
       // IDENTIFIER
       {
         IDENTIFIER,
-        COMPLETE_IDENTIFIER,
-        COMPLETE_IDENTIFIER,
-        COMPLETE_IDENTIFIER,
-        COMPLETE_IDENTIFIER_LBRACKET,
+        STOP_IDENTIFIER,
+        STOP_IDENTIFIER,
+        STOP_IDENTIFIER,
         IDENTIFIER,
-        COMPLETE_IDENTIFIER,
-        COMPLETE_IDENTIFIER_LPAREN,
-        COMPLETE_IDENTIFIER,
-        COMPLETE_IDENTIFIER,
-        COMPLETE_IDENTIFIER,
-        COMPLETE_IDENTIFIER,
-        COMPLETE_IDENTIFIER,
+        STOP_IDENTIFIER,
+        STOP_IDENTIFIER,
+        STOP_IDENTIFIER,
+        STOP_IDENTIFIER,
+        STOP_IDENTIFIER,
+        STOP_IDENTIFIER,
         IDENTIFIER,
       },
 
@@ -402,36 +372,32 @@ namespace lexer {
       {
         NUMBER,
         NUMBER,
-        COMPLETE_NUMBER,
-        COMPLETE_NUMBER,
-        COMPLETE_NUMBER,
-        COMPLETE_NUMBER,
-        COMPLETE_NUMBER,
-        COMPLETE_NUMBER,
-        COMPLETE_NUMBER,
-        COMPLETE_NUMBER,
-        COMPLETE_NUMBER,
-        COMPLETE_NUMBER,
-        COMPLETE_NUMBER,
-        COMPLETE_NUMBER,
+        STOP_NUMBER,
+        STOP_NUMBER,
+        STOP_NUMBER,
+        STOP_NUMBER,
+        STOP_NUMBER,
+        STOP_NUMBER,
+        STOP_NUMBER,
+        STOP_NUMBER,
+        STOP_NUMBER,
+        STOP_NUMBER,
       },
 
       // OPERATOR
       {
-        COMPLETE_OPERATOR,
-        COMPLETE_OPERATOR,
-        COMPLETE_OPERATOR,
-        COMPLETE_OPERATOR,
-        COMPLETE_OPERATOR,
-        COMPLETE_OPERATOR,
-        COMPLETE_OPERATOR,
-        COMPLETE_OPERATOR,
+        STOP_OPERATOR,
+        STOP_OPERATOR,
+        STOP_OPERATOR,
+        STOP_OPERATOR,
+        STOP_OPERATOR,
+        STOP_OPERATOR,
         OPERATOR,
-        COMPLETE_OPERATOR,
-        COMPLETE_OPERATOR,
-        COMPLETE_OPERATOR,
-        COMPLETE_OPERATOR,
-        COMPLETE_OPERATOR,
+        STOP_OPERATOR,
+        STOP_OPERATOR,
+        STOP_OPERATOR,
+        STOP_OPERATOR,
+        STOP_OPERATOR,
       },
 
       // STRING
@@ -444,11 +410,9 @@ namespace lexer {
         STRING,
         STRING,
         STRING,
+        STOP_STRING,
         STRING,
-        STRING,
-        COMPLETE_STRING,
-        STRING,
-        COMPLETE_STRING_UNCLOSED,
+        STOP_STRING_UNCLOSED,
         STRING,
       },
 
@@ -459,8 +423,8 @@ namespace lexer {
     class t {
     public:
       array<kind::t, 256> kind;
-      array<array<state::t, kind::COUNT>, state::NONTERMINAL_COUNT> transition;
-      array<token::t(*)(t const &, char const *, char const *, char const *, state::t), state::COUNT> jump;
+      array<array<state::t, kind::NUM>, state::NUM_NONTERMINAL> transition;
+      array<token::t(*)(t const &, char const *, char const *, char const *, state::t), state::NUM> jump;
     };
   }
 
@@ -478,7 +442,7 @@ namespace lexer {
     [[clang::musttail]] return next__dispatch(table, a, b + 1, c, s);
   }
 
-  token::t next__complete_identifier(table::t const &, char const * a, char const * b, char const *, state::t s) {
+  token::t next__stop_identifier(table::t const &, char const * a, char const * b, char const *, state::t) {
     switch (b - a) {
     case 2:
       if (!bcmp(a, "if", 2)) return token::make(token::tag::IF, a, b);
@@ -502,24 +466,18 @@ namespace lexer {
       break;
     }
 
-    if (s == state::COMPLETE_IDENTIFIER_LBRACKET)
-      return token::make(token::tag::IDENTIFIER_LBRACKET, a, b + 1);
-
-    if (s == state::COMPLETE_IDENTIFIER_LPAREN)
-      return token::make(token::tag::IDENTIFIER_LPAREN, a, b + 1);
-
     return token::make(token::tag::IDENTIFIER, a, b);
   }
 
-  token::t next__complete_illegal_character(table::t const &, char const * a, char const * b, char const *, state::t) {
+  token::t next__stop_illegal_character(table::t const &, char const * a, char const * b, char const *, state::t) {
     return token::make(token::tag::ILLEGAL, a, b + 1);
   }
 
-  token::t next__complete_number(table::t const &, char const * a, char const * b, char const *, state::t) {
+  token::t next__stop_number(table::t const &, char const * a, char const * b, char const *, state::t) {
     return token::make(token::tag::NUMBER, a, b);
   }
 
-  token::t next__complete_operator(table::t const &, char const * a, char const * b, char const *, state::t) {
+  token::t next__stop_operator(table::t const &, char const * a, char const * b, char const *, state::t) {
     if (b - a == 1) {
       switch (* a) {
         case '=': return token::make(token::tag::ASSIGN, a, b);
@@ -550,14 +508,14 @@ namespace lexer {
     return token::make(token::tag::ILLEGAL, a, b);
   }
 
-  token::t next__complete_string(table::t const &, char const * a, char const * b, char const *, state::t s) {
-    if (s == state::COMPLETE_STRING_UNCLOSED)
+  token::t next__stop_string(table::t const &, char const * a, char const * b, char const *, state::t s) {
+    if (s == state::STOP_STRING_UNCLOSED)
       return token::make(token::tag::ILLEGAL, a, b);
 
     return token::make(token::tag::STRING, a, b + 1);
   }
 
-  token::t next__complete_punctuation(table::t const &, char const * a, char const * b, char const *, state::t) {
+  token::t next__stop_punctuation(table::t const &, char const * a, char const * b, char const *, state::t) {
     switch (* a) {
       case ':': return token::make(token::tag::COLON, a, b + 1);
       case ',': return token::make(token::tag::COMMA, a, b + 1);
@@ -585,22 +543,21 @@ namespace lexer {
     kind::table,
     state::transition,
     {
+      NULL,
       next__restart,
       next__continue,
       next__continue,
       next__continue,
       next__continue,
       next__continue,
-      next__complete_identifier,
-      next__complete_identifier,
-      next__complete_identifier,
-      next__complete_illegal_character,
-      next__complete_number,
-      next__complete_operator,
-      next__complete_punctuation,
-      next__complete_string,
-      next__complete_string,
       next__stop,
+      next__stop_identifier,
+      next__stop_illegal_character,
+      next__stop_number,
+      next__stop_operator,
+      next__stop_punctuation,
+      next__stop_string,
+      next__stop_string,
     }
   };
 
