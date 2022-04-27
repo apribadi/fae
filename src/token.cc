@@ -136,6 +136,11 @@ namespace token {
     tag::t tag;
     char const * start;
     char const * stop;
+
+    u64 hash() {
+      // We can assume 8 bytes of nil padding.
+      return 0;
+    }
   };
 
   t make(tag::t tag, char const * start, char const * stop) {

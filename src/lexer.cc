@@ -1,5 +1,5 @@
 namespace lexer {
-  namespace kind {
+  namespace character_class {
     enum t : u8 {
       DIGIT,
       DOT,
@@ -17,7 +17,7 @@ namespace lexer {
 
     constexpr size_t NUM = 12;
 
-    constexpr array<t, 256> table = {
+    constexpr array<t, 256> classify = {
       NIL,
       ILLEGAL,
       ILLEGAL,
@@ -303,7 +303,7 @@ namespace lexer {
     constexpr size_t NUM_TERMINAL = 10;
     constexpr size_t NUM = NUM_NONTERMINAL + NUM_TERMINAL;
 
-    constexpr array<t, kind::NUM> transition_restart = {
+    constexpr array<t, character_class::NUM> transition_restart = {
       NUMBER,
       DOT,
       COMMENT,
@@ -318,7 +318,7 @@ namespace lexer {
       IDENTIFIER,
     };
 
-    constexpr array<t, kind::NUM> transition_start = {
+    constexpr array<t, character_class::NUM> transition_start = {
       NUMBER,
       DOT,
       COMMENT,
@@ -333,7 +333,7 @@ namespace lexer {
       IDENTIFIER,
     };
 
-    constexpr array<t, kind::NUM> transition_comment = {
+    constexpr array<t, character_class::NUM> transition_comment = {
       COMMENT,
       COMMENT,
       COMMENT,
@@ -348,7 +348,7 @@ namespace lexer {
       COMMENT,
     };
 
-    constexpr array<t, kind::NUM> transition_dot = {
+    constexpr array<t, character_class::NUM> transition_dot = {
       STOP_DOT,
       DOT,
       STOP_DOT,
@@ -363,7 +363,7 @@ namespace lexer {
       STOP_DOT,
     };
 
-    constexpr array<t, kind::NUM> transition_identifier = {
+    constexpr array<t, character_class::NUM> transition_identifier = {
       IDENTIFIER,
       STOP_IDENTIFIER,
       STOP_IDENTIFIER,
@@ -378,7 +378,7 @@ namespace lexer {
       IDENTIFIER,
     };
 
-    constexpr array<t, kind::NUM> transition_number = {
+    constexpr array<t, character_class::NUM> transition_number = {
       NUMBER,
       NUMBER,
       STOP_NUMBER,
@@ -393,7 +393,7 @@ namespace lexer {
       STOP_NUMBER,
     };
 
-    constexpr array<t, kind::NUM> transition_operator = {
+    constexpr array<t, character_class::NUM> transition_operator = {
       STOP_OPERATOR,
       STOP_OPERATOR,
       STOP_OPERATOR,
@@ -408,7 +408,7 @@ namespace lexer {
       STOP_OPERATOR,
     };
 
-    constexpr array<t, kind::NUM> transition_string = {
+    constexpr array<t, character_class::NUM> transition_string = {
       STRING,
       STRING,
       STRING,
@@ -423,7 +423,7 @@ namespace lexer {
       STRING,
     };
 
-    constexpr array<array<t, kind::NUM>, NUM_NONTERMINAL> transition = {
+    constexpr array<array<t, character_class::NUM>, NUM_NONTERMINAL> transition = {
       transition_restart,
       transition_start,
       transition_comment,
@@ -438,21 +438,21 @@ namespace lexer {
   namespace table {
     class t {
     public:
-      array<kind::t, 256> kind;
-      array<array<state::t, kind::NUM>, state::NUM_NONTERMINAL> transition;
+      array<character_class::t, 256> classify;
+      array<array<state::t, character_class::NUM>, state::NUM_NONTERMINAL> transition;
       array<token::t(*)(t const &, char const *, char const *, char const *, state::t), state::NUM> jump;
     };
   }
 
   token::t next__start(table::t const & table, char const * a, char const * b) {
-    state::t s = table.transition[state::START][table.kind[static_cast<unsigned char>(* a)]];
+    state::t s = table.transition[state::START][table.classify[static_cast<unsigned char>(* a)]];
     return table.jump[s](table, a, a, b, s);
   }
 
   token::t next__continue(table::t const & table, char const * a, char const * b, char const * c, state::t s) {
-    a = s ? a : b + 1;
+    a = s ? a : b + 1; // state::RESTART == 0
     b = b + 1;
-    s = table.transition[s][table.kind[static_cast<unsigned char>(* b)]];
+    s = table.transition[s][table.classify[static_cast<unsigned char>(* b)]];
     [[clang::musttail]] return table.jump[s](table, a, b, c, s);
   }
 
@@ -579,30 +579,32 @@ namespace lexer {
     return token::make(token::tag::ILLEGAL, a, b + 1);
   }
 
-  constexpr table::t global_table = {
-    kind::table,
-    state::transition,
-    {
-      next__continue,
-      NULL,
-      next__continue,
-      next__continue,
-      next__continue,
-      next__continue,
-      next__continue,
-      next__continue,
-      next__stop_dot,
-      next__stop_identifier,
-      next__stop_illegal_character,
-      next__stop_illegal_token,
-      next__stop_nil,
-      next__stop_number,
-      next__stop_operator,
-      next__stop_punctuation,
-      next__stop_punctuation_nospace,
-      next__stop_string,
-    }
-  };
+  namespace table {
+    constexpr t global = {
+      character_class::classify,
+      state::transition,
+      {
+        next__continue,
+        NULL,
+        next__continue,
+        next__continue,
+        next__continue,
+        next__continue,
+        next__continue,
+        next__continue,
+        next__stop_dot,
+        next__stop_identifier,
+        next__stop_illegal_character,
+        next__stop_illegal_token,
+        next__stop_nil,
+        next__stop_number,
+        next__stop_operator,
+        next__stop_punctuation,
+        next__stop_punctuation_nospace,
+        next__stop_string,
+      }
+    };
+  }
 
   class t {
   private:
@@ -623,7 +625,7 @@ namespace lexer {
     }
 
     token::t next() {
-      token::t token = next__start(global_table, current, stop);
+      token::t token = next__start(table::global, current, stop);
       current = token.stop;
       return token;
     }

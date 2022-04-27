@@ -7,10 +7,10 @@ namespace io {
     fseek(file, 0, SEEK_END);
     size_t n = ftell(file);
     rewind(file);
-    char * buf = arena.make_array<char>(n + 1);
+    char * buf = arena.make_array<char>(n + 8);
     if (fread(buf, 1, n, file) != n) throw runtime_error("io::read - fread failed!");
     fclose(file);
-    buf[n] = '\0';
-    return span<char>(buf, n + 1);
+    for (int i = 0; i < 8; ++ i) buf[n + i] = '\0';
+    return span<char>(buf, n + 8);
   }
 }
