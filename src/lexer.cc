@@ -7,18 +7,18 @@ namespace lexer {
       ILLEGAL,
       LETTER,
       LINEBREAK,
+      NIL,
       OPERATOR,
       PUNCTUATION,
       QUOTE,
       SPACE,
-      STOP,
       UNDERSCORE,
     };
 
     constexpr size_t NUM = 12;
 
     constexpr array<t, 256> table = {
-      STOP,
+      NIL,
       ILLEGAL,
       ILLEGAL,
       ILLEGAL,
@@ -287,11 +287,11 @@ namespace lexer {
       NUMBER,
       OPERATOR,
       STRING,
-      STOP,
       STOP_DOT,
       STOP_IDENTIFIER,
       STOP_ILLEGAL_CHARACTER,
       STOP_ILLEGAL_TOKEN,
+      STOP_NIL,
       STOP_NUMBER,
       STOP_OPERATOR,
       STOP_PUNCTUATION,
@@ -310,11 +310,11 @@ namespace lexer {
       STOP_ILLEGAL_CHARACTER,
       IDENTIFIER,
       RESTART,
+      STOP_NIL,
       OPERATOR,
       STOP_PUNCTUATION,
       STRING,
       RESTART,
-      STOP,
       IDENTIFIER,
     };
 
@@ -325,11 +325,11 @@ namespace lexer {
       STOP_ILLEGAL_CHARACTER,
       IDENTIFIER,
       RESTART,
+      STOP_NIL,
       OPERATOR,
       STOP_PUNCTUATION_NOSPACE,
       STRING,
       RESTART,
-      STOP,
       IDENTIFIER,
     };
 
@@ -340,11 +340,11 @@ namespace lexer {
       COMMENT,
       COMMENT,
       RESTART,
+      STOP_NIL,
       COMMENT,
       COMMENT,
       COMMENT,
       COMMENT,
-      STOP,
       COMMENT,
     };
 
@@ -400,8 +400,8 @@ namespace lexer {
       STOP_OPERATOR,
       STOP_OPERATOR,
       STOP_OPERATOR,
-      OPERATOR,
       STOP_OPERATOR,
+      OPERATOR,
       STOP_OPERATOR,
       STOP_OPERATOR,
       STOP_OPERATOR,
@@ -415,11 +415,11 @@ namespace lexer {
       STRING,
       STRING,
       STRING,
+      STOP_ILLEGAL_TOKEN,
       STRING,
       STRING,
       STOP_STRING,
       STRING,
-      STOP_ILLEGAL_TOKEN,
       STRING,
     };
 
@@ -454,13 +454,6 @@ namespace lexer {
     b = b + 1;
     s = table.transition[s][table.kind[static_cast<unsigned char>(* b)]];
     [[clang::musttail]] return table.jump[s](table, a, b, c, s);
-  }
-
-  token::t next__stop(table::t const &, char const *, char const * b, char const * c, state::t) {
-    if (b != c)
-      return token::make(token::tag::ILLEGAL, b, b + 1);
-
-    return token::make(token::tag::STOP, b, b);
   }
 
   token::t next__stop_dot(table::t const &, char const * a, char const * b, char const *, state::t) {
@@ -506,6 +499,13 @@ namespace lexer {
 
   token::t next__stop_illegal_token(table::t const &, char const * a, char const * b, char const *, state::t) {
     return token::make(token::tag::ILLEGAL, a, b);
+  }
+
+  token::t next__stop_nil(table::t const &, char const *, char const * b, char const * c, state::t) {
+    if (b != c)
+      return token::make(token::tag::ILLEGAL, b, b + 1);
+
+    return token::make(token::tag::STOP, b, b);
   }
 
   token::t next__stop_number(table::t const &, char const * a, char const * b, char const *, state::t) {
@@ -591,11 +591,11 @@ namespace lexer {
       next__continue,
       next__continue,
       next__continue,
-      next__stop,
       next__stop_dot,
       next__stop_identifier,
       next__stop_illegal_character,
       next__stop_illegal_token,
+      next__stop_nil,
       next__stop_number,
       next__stop_operator,
       next__stop_punctuation,
