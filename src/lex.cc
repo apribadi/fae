@@ -1,4 +1,4 @@
-namespace lexer {
+namespace lex {
   namespace character_class {
     enum t : u8 {
       DIGIT,
@@ -445,14 +445,14 @@ namespace lexer {
   }
 
   token::t next__start(table::t const & table, char const * a, char const * b) {
-    state::t s = table.transition[state::START][table.classify[static_cast<unsigned char>(* a)]];
+    state::t s = table.transition[state::START][table.classify[static_cast<u8>(* a)]];
     return table.jump[s](table, a, a, b, s);
   }
 
   token::t next__continue(table::t const & table, char const * a, char const * b, char const * c, state::t s) {
     a = s ? a : b + 1; // state::RESTART == 0
     b = b + 1;
-    s = table.transition[s][table.classify[static_cast<unsigned char>(* b)]];
+    s = table.transition[s][table.classify[static_cast<u8>(* b)]];
     [[clang::musttail]] return table.jump[s](table, a, b, c, s);
   }
 
@@ -616,7 +616,7 @@ namespace lexer {
     t(span<char> source) {
       size_t n = source.size();
 
-      assert(n > 0);
+      assert(n >= 1);
       assert(source[n - 1] == '\0');
 
       start = &source[0];

@@ -12,8 +12,11 @@
 #include "prelude.cc"
 #include "arena.cc"
 #include "io.cc"
+#include "name.cc"
 #include "token.cc"
-#include "lexer.cc"
+#include "lex.cc"
+#include "syn.cc"
+#include "parse.cc"
 
 int main(int argc, char ** argv) {
   if (argc != 2) {
@@ -24,10 +27,10 @@ int main(int argc, char ** argv) {
 
   arena::t arena;
   span<char> source = io::read(arena, argv[1]);
-  lexer::t lexer(source);
+  lex::t lex(source);
 
   for (;;) {
-    token::t token = lexer.next();
+    token::t token = lex.next();
     token::print(token);
 
     if (token.tag == token::tag::STOP) break;
