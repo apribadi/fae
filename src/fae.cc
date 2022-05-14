@@ -5,8 +5,9 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include <stdexcept>
 #include <span>
+#include <stdexcept>
+#include <string_view>
 #include <vector>
 
 #include "prelude.cc"
@@ -14,9 +15,9 @@
 #include "io.cc"
 #include "name.cc"
 #include "token.cc"
-#include "lex.cc"
+#include "lexer.cc"
 #include "syn.cc"
-#include "parse.cc"
+#include "parser.cc"
 
 int main(int argc, char ** argv) {
   if (argc != 2) {
@@ -27,13 +28,13 @@ int main(int argc, char ** argv) {
 
   arena::t arena;
   span<char> source = io::read(arena, argv[1]);
-  lex::t lex(source);
+  Lexer lexer(source);
 
   for (;;) {
-    token::t token = lex.next();
-    token::print(token);
+    Token tok = lexer.next();
+    token::print(tok);
 
-    if (token.tag == token::tag::STOP) break;
+    if (tok.tag == token::Tag::STOP) break;
   }
 
   return 0;
