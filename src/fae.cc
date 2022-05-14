@@ -26,13 +26,13 @@ int main(int argc, char ** argv) {
     return 1;
   }
 
-  arena::t arena;
-  span<char> source = io::read(arena, argv[1]);
+  Arena arena;
+  span<char> source = io::Read(arena, argv[1]);
   Lexer lexer(source);
 
   for (;;) {
-    Token tok = lexer.next();
-    token::print(tok);
+    Token tok = lexer.Next();
+    token::Print(tok);
 
     if (tok.tag == token::Tag::STOP) break;
   }

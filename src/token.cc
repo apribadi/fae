@@ -74,7 +74,7 @@ namespace token {
 }
 
 namespace token::tag {
-  char const * to_string(Tag tag) {
+  char const * ToString(Tag tag) {
     switch (tag) {
       case Tag::STOP: return "STOP";
       case Tag::ILLEGAL: return "ILLEGAL";
@@ -139,16 +139,16 @@ struct Token {
 };
 
 namespace token {
-  Token make(Tag tag, char const * start, char const * stop) {
+  Token Make(Tag tag, char const * start, char const * stop) {
     return { tag, start, stop };
   }
 
-  void print(Token const & t) {
+  void Print(Token const & tok) {
     printf(
         "%s: \"%.*s\"\n",
-        token::tag::to_string(t.tag),
-        static_cast<int>(t.stop - t.start),
-        t.start
+        token::tag::ToString(tok.tag),
+        static_cast<int>(tok.stop - tok.start),
+        tok.start
       );
   }
 }

@@ -281,7 +281,7 @@ namespace lexer::char_class {
 }
 
 namespace lexer {
-  enum State {
+  enum class State {
     RESTART,
     START,
     COMMENT,
@@ -304,11 +304,13 @@ namespace lexer {
 }
 
 namespace lexer::state {
+  using enum lexer::State;
+
   constexpr size_t NUM_VALUES_NONTERMINAL = 8;
   constexpr size_t NUM_VALUES_TERMINAL = 10;
   constexpr size_t NUM_VALUES = NUM_VALUES_NONTERMINAL + NUM_VALUES_TERMINAL;
 
-  constexpr array<State, lexer::char_class::NUM_VALUES> TRANSITION_TABLE_RESTART = {
+  constexpr array<State, lexer::char_class::NUM_VALUES> TABLE_RESTART = {
     NUMBER,
     DOT,
     COMMENT,
@@ -323,7 +325,7 @@ namespace lexer::state {
     IDENTIFIER,
   };
 
-  constexpr array<State, lexer::char_class::NUM_VALUES> TRANSITION_TABLE_START = {
+  constexpr array<State, lexer::char_class::NUM_VALUES> TABLE_START = {
     NUMBER,
     DOT,
     COMMENT,
@@ -338,7 +340,7 @@ namespace lexer::state {
     IDENTIFIER,
   };
 
-  constexpr array<State, lexer::char_class::NUM_VALUES> TRANSITION_TABLE_COMMENT = {
+  constexpr array<State, lexer::char_class::NUM_VALUES> TABLE_COMMENT = {
     COMMENT,
     COMMENT,
     COMMENT,
@@ -353,7 +355,7 @@ namespace lexer::state {
     COMMENT,
   };
 
-  constexpr array<State, lexer::char_class::NUM_VALUES> TRANSITION_TABLE_DOT = {
+  constexpr array<State, lexer::char_class::NUM_VALUES> TABLE_DOT = {
     STOP_DOT,
     DOT,
     STOP_DOT,
@@ -368,7 +370,7 @@ namespace lexer::state {
     STOP_DOT,
   };
 
-  constexpr array<State, lexer::char_class::NUM_VALUES> TRANSITION_TABLE_IDENTIFIER = {
+  constexpr array<State, lexer::char_class::NUM_VALUES> TABLE_IDENTIFIER = {
     IDENTIFIER,
     STOP_IDENTIFIER,
     STOP_IDENTIFIER,
@@ -383,7 +385,7 @@ namespace lexer::state {
     IDENTIFIER,
   };
 
-  constexpr array<State, lexer::char_class::NUM_VALUES> TRANSITION_TABLE_NUMBER = {
+  constexpr array<State, lexer::char_class::NUM_VALUES> TABLE_NUMBER = {
     NUMBER,
     NUMBER,
     STOP_NUMBER,
@@ -398,7 +400,7 @@ namespace lexer::state {
     STOP_NUMBER,
   };
 
-  constexpr array<State, lexer::char_class::NUM_VALUES> TRANSITION_TABLE_OPERATOR = {
+  constexpr array<State, lexer::char_class::NUM_VALUES> TABLE_OPERATOR = {
     STOP_OPERATOR,
     STOP_OPERATOR,
     STOP_OPERATOR,
@@ -413,7 +415,7 @@ namespace lexer::state {
     STOP_OPERATOR,
   };
 
-  constexpr array<State, lexer::char_class::NUM_VALUES> TRANSITION_TABLE_STRING = {
+  constexpr array<State, lexer::char_class::NUM_VALUES> TABLE_STRING = {
     STRING,
     STRING,
     STRING,
@@ -428,189 +430,186 @@ namespace lexer::state {
     STRING,
   };
 
-  constexpr array<array<State, lexer::char_class::NUM_VALUES>, NUM_VALUES_NONTERMINAL> TRANSITION_TABLE = {
-    TRANSITION_TABLE_RESTART,
-    TRANSITION_TABLE_START,
-    TRANSITION_TABLE_COMMENT,
-    TRANSITION_TABLE_DOT,
-    TRANSITION_TABLE_IDENTIFIER,
-    TRANSITION_TABLE_NUMBER,
-    TRANSITION_TABLE_OPERATOR,
-    TRANSITION_TABLE_STRING,
+  constexpr array<array<State, lexer::char_class::NUM_VALUES>, NUM_VALUES_NONTERMINAL> TABLE = {
+    TABLE_RESTART,
+    TABLE_START,
+    TABLE_COMMENT,
+    TABLE_DOT,
+    TABLE_IDENTIFIER,
+    TABLE_NUMBER,
+    TABLE_OPERATOR,
+    TABLE_STRING,
   };
 }
 
 namespace lexer {
-  namespace table {
-    class t {
-    public:
-      array<CharClass, 256> classify;
-      array<array<State, lexer::char_class::NUM_VALUES>, lexer::state::NUM_VALUES_NONTERMINAL> transition;
-      array<Token(*)(t const &, char const *, char const *, char const *, State), lexer::state::NUM_VALUES> jump;
-    };
+  struct Table {
+    array<CharClass, 256> classify;
+    array<array<State, lexer::char_class::NUM_VALUES>, lexer::state::NUM_VALUES_NONTERMINAL> transition;
+    array<Token(*)(Table const &, char const *, char const *, char const *, State), lexer::state::NUM_VALUES> jump;
+  };
+
+  Token Next__Start(Table const & table, char const * a, char const * b) {
+    State s = table.transition[(u8) State::START][(u8) table.classify[(u8) (* a)]];
+    return table.jump[(u8) s](table, a, a, b, s);
   }
 
-  Token next__start(table::t const & table, char const * a, char const * b) {
-    State s = table.transition[State::START][(u8)table.classify[(u8)(* a)]];
-    return table.jump[s](table, a, a, b, s);
-  }
-
-  Token next__continue(table::t const & table, char const * a, char const * b, char const * c, State s) {
-    a = s ? a : b + 1; // State::RESTART == 0
+  Token Next__Continue(Table const & table, char const * a, char const * b, char const * c, State s) {
+    a = s == State::RESTART ? b + 1 : a;
     b = b + 1;
-    s = table.transition[s][(u8)table.classify[(u8)(* b)]];
-    [[clang::musttail]] return table.jump[s](table, a, b, c, s);
+    s = table.transition[(u8) s][(u8) table.classify[(u8) (* b)]];
+    [[clang::musttail]] return table.jump[(u8) s](table, a, b, c, s);
   }
 
-  Token next__stop_dot(table::t const &, char const * a, char const * b, char const *, State) {
+  Token Next__StopDot(Table const &, char const * a, char const * b, char const *, State) {
     if (b - a == 1)
-      return token::make(token::Tag::DOT, a, b);
+      return token::Make(token::Tag::DOT, a, b);
 
-    return token::make(token::Tag::ILLEGAL, a, b);
+    return token::Make(token::Tag::ILLEGAL, a, b);
   }
 
-  Token next__stop_identifier(table::t const &, char const * a, char const * b, char const *, State) {
+  Token Next__StopIdentifier(Table const &, char const * a, char const * b, char const *, State) {
     switch (b - a) {
     case 2:
-      if (!bcmp(a, "if", 2)) return token::make(token::Tag::IF, a, b);
-      if (!bcmp(a, "or", 2)) return token::make(token::Tag::OR, a, b);
+      if (!bcmp(a, "if", 2)) return token::Make(token::Tag::IF, a, b);
+      if (!bcmp(a, "or", 2)) return token::Make(token::Tag::OR, a, b);
       break;
     case 3:
-      if (!bcmp(a, "and", 3)) return token::make(token::Tag::AND, a, b);
-      if (!bcmp(a, "end", 3)) return token::make(token::Tag::END, a, b);
-      if (!bcmp(a, "for", 3)) return token::make(token::Tag::FOR, a, b);
-      if (!bcmp(a, "fun", 3)) return token::make(token::Tag::FUN, a, b);
-      if (!bcmp(a, "let", 3)) return token::make(token::Tag::LET, a, b);
+      if (!bcmp(a, "and", 3)) return token::Make(token::Tag::AND, a, b);
+      if (!bcmp(a, "end", 3)) return token::Make(token::Tag::END, a, b);
+      if (!bcmp(a, "for", 3)) return token::Make(token::Tag::FOR, a, b);
+      if (!bcmp(a, "fun", 3)) return token::Make(token::Tag::FUN, a, b);
+      if (!bcmp(a, "let", 3)) return token::Make(token::Tag::LET, a, b);
       break;
     case 4:
-      if (!bcmp(a, "else", 4)) return token::make(token::Tag::ELSE, a, b);
-      if (!bcmp(a, "elif", 4)) return token::make(token::Tag::ELIF, a, b);
-      if (!bcmp(a, "loop", 4)) return token::make(token::Tag::LOOP, a, b);
+      if (!bcmp(a, "else", 4)) return token::Make(token::Tag::ELSE, a, b);
+      if (!bcmp(a, "elif", 4)) return token::Make(token::Tag::ELIF, a, b);
+      if (!bcmp(a, "loop", 4)) return token::Make(token::Tag::LOOP, a, b);
       break;
     case 5:
-      if (!bcmp(a, "break", 5)) return token::make(token::Tag::BREAK, a, b);
-      if (!bcmp(a, "while", 5)) return token::make(token::Tag::WHILE, a, b);
+      if (!bcmp(a, "break", 5)) return token::Make(token::Tag::BREAK, a, b);
+      if (!bcmp(a, "while", 5)) return token::Make(token::Tag::WHILE, a, b);
       break;
     case 6:
-      if (!bcmp(a, "return", 5)) return token::make(token::Tag::RETURN, a, b);
+      if (!bcmp(a, "return", 5)) return token::Make(token::Tag::RETURN, a, b);
       break;
     }
 
-    return token::make(token::Tag::IDENTIFIER, a, b);
+    return token::Make(token::Tag::IDENTIFIER, a, b);
   }
 
-  Token next__stop_illegal_character(table::t const &, char const * a, char const * b, char const *, State) {
-    return token::make(token::Tag::ILLEGAL, a, b + 1);
+  Token Next__StopIllegalCharacter(Table const &, char const * a, char const * b, char const *, State) {
+    return token::Make(token::Tag::ILLEGAL, a, b + 1);
   }
 
-  Token next__stop_illegal_token(table::t const &, char const * a, char const * b, char const *, State) {
-    return token::make(token::Tag::ILLEGAL, a, b);
+  Token Next__StopIllegalToken(Table const &, char const * a, char const * b, char const *, State) {
+    return token::Make(token::Tag::ILLEGAL, a, b);
   }
 
-  Token next__stop_nil(table::t const &, char const *, char const * b, char const * c, State) {
+  Token Next__StopNil(Table const &, char const *, char const * b, char const * c, State) {
     if (b != c)
-      return token::make(token::Tag::ILLEGAL, b, b + 1);
+      return token::Make(token::Tag::ILLEGAL, b, b + 1);
 
-    return token::make(token::Tag::STOP, b, b);
+    return token::Make(token::Tag::STOP, b, b);
   }
 
-  Token next__stop_number(table::t const &, char const * a, char const * b, char const *, State) {
-    return token::make(token::Tag::NUMBER, a, b);
+  Token Next__StopNumber(Table const &, char const * a, char const * b, char const *, State) {
+    return token::Make(token::Tag::NUMBER, a, b);
   }
 
-  Token next__stop_operator(table::t const &, char const * a, char const * b, char const *, State) {
+  Token Next__StopOperator(Table const &, char const * a, char const * b, char const *, State) {
     if (b - a == 1) {
       switch (* a) {
-        case '=': return token::make(token::Tag::ASSIGN, a, b);
-        case '<': return token::make(token::Tag::LT, a, b);
-        case '>': return token::make(token::Tag::GT, a, b);
-        case '+': return token::make(token::Tag::PLUS, a, b);
-        case '-': return token::make(token::Tag::MINUS, a, b);
-        case '*': return token::make(token::Tag::STAR, a, b);
-        case '/': return token::make(token::Tag::SLASH, a, b);
-        case '&': return token::make(token::Tag::AMPERSAND, a, b);
-        case '@': return token::make(token::Tag::AT, a, b);
-        case '!': return token::make(token::Tag::BANG, a, b);
-        case '^': return token::make(token::Tag::CARET, a, b);
-        case '$': return token::make(token::Tag::DOLLAR, a, b);
-        case '%': return token::make(token::Tag::PERCENT, a, b);
-        case '|': return token::make(token::Tag::PIPE, a, b);
-        case '?': return token::make(token::Tag::QUERY, a, b);
-        case '~': return token::make(token::Tag::TILDE, a, b);
+        case '=': return token::Make(token::Tag::ASSIGN, a, b);
+        case '<': return token::Make(token::Tag::LT, a, b);
+        case '>': return token::Make(token::Tag::GT, a, b);
+        case '+': return token::Make(token::Tag::PLUS, a, b);
+        case '-': return token::Make(token::Tag::MINUS, a, b);
+        case '*': return token::Make(token::Tag::STAR, a, b);
+        case '/': return token::Make(token::Tag::SLASH, a, b);
+        case '&': return token::Make(token::Tag::AMPERSAND, a, b);
+        case '@': return token::Make(token::Tag::AT, a, b);
+        case '!': return token::Make(token::Tag::BANG, a, b);
+        case '^': return token::Make(token::Tag::CARET, a, b);
+        case '$': return token::Make(token::Tag::DOLLAR, a, b);
+        case '%': return token::Make(token::Tag::PERCENT, a, b);
+        case '|': return token::Make(token::Tag::PIPE, a, b);
+        case '?': return token::Make(token::Tag::QUERY, a, b);
+        case '~': return token::Make(token::Tag::TILDE, a, b);
       }
     }
     else if (b - a == 2) {
-      if (!bcmp(a, "==", 2)) return token::make(token::Tag::EQ, a, b);
-      if (!bcmp(a, "!=", 2)) return token::make(token::Tag::NE, a, b);
-      if (!bcmp(a, "<=", 2)) return token::make(token::Tag::LE, a, b);
-      if (!bcmp(a, ">=", 2)) return token::make(token::Tag::GE, a, b);
+      if (!bcmp(a, "==", 2)) return token::Make(token::Tag::EQ, a, b);
+      if (!bcmp(a, "!=", 2)) return token::Make(token::Tag::NE, a, b);
+      if (!bcmp(a, "<=", 2)) return token::Make(token::Tag::LE, a, b);
+      if (!bcmp(a, ">=", 2)) return token::Make(token::Tag::GE, a, b);
     }
 
-    return token::make(token::Tag::ILLEGAL, a, b);
+    return token::Make(token::Tag::ILLEGAL, a, b);
   }
 
-  Token next__stop_string(table::t const &, char const * a, char const * b, char const *, State) {
-    return token::make(token::Tag::STRING, a, b + 1);
+  Token Next__StopString(Table const &, char const * a, char const * b, char const *, State) {
+    return token::Make(token::Tag::STRING, a, b + 1);
   }
 
-  Token next__stop_punctuation(table::t const &, char const * a, char const * b, char const *, State) {
+  Token Next__StopPunctuation(Table const &, char const * a, char const * b, char const *, State) {
     switch (* a) {
-      case ':': return token::make(token::Tag::COLON, a, b + 1);
-      case ',': return token::make(token::Tag::COMMA, a, b + 1);
-      case ';': return token::make(token::Tag::SEMICOLON, a, b + 1);
-      case '(': return token::make(token::Tag::LPAREN, a, b + 1);
-      case '[': return token::make(token::Tag::LBRACKET, a, b + 1);
-      case '{': return token::make(token::Tag::LBRACE, a, b + 1);
-      case ')': return token::make(token::Tag::RPAREN, a, b + 1);
-      case ']': return token::make(token::Tag::RBRACKET, a, b + 1);
-      case '}': return token::make(token::Tag::RBRACE, a, b + 1);
+      case ':': return token::Make(token::Tag::COLON, a, b + 1);
+      case ',': return token::Make(token::Tag::COMMA, a, b + 1);
+      case ';': return token::Make(token::Tag::SEMICOLON, a, b + 1);
+      case '(': return token::Make(token::Tag::LPAREN, a, b + 1);
+      case '[': return token::Make(token::Tag::LBRACKET, a, b + 1);
+      case '{': return token::Make(token::Tag::LBRACE, a, b + 1);
+      case ')': return token::Make(token::Tag::RPAREN, a, b + 1);
+      case ']': return token::Make(token::Tag::RBRACKET, a, b + 1);
+      case '}': return token::Make(token::Tag::RBRACE, a, b + 1);
     }
 
-    return token::make(token::Tag::ILLEGAL, a, b + 1);
+    return token::Make(token::Tag::ILLEGAL, a, b + 1);
   }
 
-  Token next__stop_punctuation_nospace(table::t const &, char const * a, char const * b, char const *, State) {
+  Token Next__StopPunctuationNoSpace(Table const &, char const * a, char const * b, char const *, State) {
     switch (* a) {
-      case ':': return token::make(token::Tag::COLON, a, b + 1);
-      case ',': return token::make(token::Tag::COMMA, a, b + 1);
-      case ';': return token::make(token::Tag::SEMICOLON, a, b + 1);
-      case '(': return token::make(token::Tag::LPAREN_NOSPACE, a, b + 1);
-      case '[': return token::make(token::Tag::LBRACKET_NOSPACE, a, b + 1);
-      case '{': return token::make(token::Tag::LBRACE, a, b + 1);
-      case ')': return token::make(token::Tag::RPAREN, a, b + 1);
-      case ']': return token::make(token::Tag::RBRACKET, a, b + 1);
-      case '}': return token::make(token::Tag::RBRACE, a, b + 1);
+      case ':': return token::Make(token::Tag::COLON, a, b + 1);
+      case ',': return token::Make(token::Tag::COMMA, a, b + 1);
+      case ';': return token::Make(token::Tag::SEMICOLON, a, b + 1);
+      case '(': return token::Make(token::Tag::LPAREN_NOSPACE, a, b + 1);
+      case '[': return token::Make(token::Tag::LBRACKET_NOSPACE, a, b + 1);
+      case '{': return token::Make(token::Tag::LBRACE, a, b + 1);
+      case ')': return token::Make(token::Tag::RPAREN, a, b + 1);
+      case ']': return token::Make(token::Tag::RBRACKET, a, b + 1);
+      case '}': return token::Make(token::Tag::RBRACE, a, b + 1);
     }
 
-    return token::make(token::Tag::ILLEGAL, a, b + 1);
+    return token::Make(token::Tag::ILLEGAL, a, b + 1);
   }
+}
 
-  namespace table {
-    constexpr t global = {
-      lexer::char_class::TABLE,
-      lexer::state::TRANSITION_TABLE,
-      {
-        next__continue,
-        NULL,
-        next__continue,
-        next__continue,
-        next__continue,
-        next__continue,
-        next__continue,
-        next__continue,
-        next__stop_dot,
-        next__stop_identifier,
-        next__stop_illegal_character,
-        next__stop_illegal_token,
-        next__stop_nil,
-        next__stop_number,
-        next__stop_operator,
-        next__stop_punctuation,
-        next__stop_punctuation_nospace,
-        next__stop_string,
-      }
-    };
-  }
+namespace lexer::table {
+  constexpr lexer::Table global = {
+    lexer::char_class::TABLE,
+    lexer::state::TABLE,
+    {
+      Next__Continue,
+      NULL,
+      Next__Continue,
+      Next__Continue,
+      Next__Continue,
+      Next__Continue,
+      Next__Continue,
+      Next__Continue,
+      Next__StopDot,
+      Next__StopIdentifier,
+      Next__StopIllegalCharacter,
+      Next__StopIllegalToken,
+      Next__StopNil,
+      Next__StopNumber,
+      Next__StopOperator,
+      Next__StopPunctuation,
+      Next__StopPunctuationNoSpace,
+      Next__StopString,
+    }
+  };
 }
 
 class Lexer {
@@ -631,8 +630,8 @@ public:
     current = start;
   }
 
-  Token next() {
-    Token token = lexer::next__start(lexer::table::global, current, stop);
+  Token Next() {
+    Token token = lexer::Next__Start(lexer::table::global, current, stop);
     current = token.stop;
     return token;
   }

@@ -1,5 +1,5 @@
 namespace io {
-  span<char> read(arena::t& arena, char const * path) {
+  span<char> Read(Arena& arena, char const * path) {
     // TODO: don't leak file
     // TODO: fewer C-isms
     FILE * file = fopen(path, "rb");
@@ -7,7 +7,7 @@ namespace io {
     fseek(file, 0, SEEK_END);
     size_t n = ftell(file);
     rewind(file);
-    char * buf = arena.make_array<char>(n + 1);
+    char * buf = arena.MakeArray<char>(n + 1);
     if (fread(buf, 1, n, file) != n) throw runtime_error("io::read - fread failed!");
     fclose(file);
     buf[n] = '\0';
