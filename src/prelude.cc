@@ -8,6 +8,7 @@ using std::align_val_t;
 using std::array;
 using std::byte;
 using std::forward;
+using std::is_trivially_default_constructible;
 using std::is_trivially_destructible;
 using std::move;
 using std::popcount;

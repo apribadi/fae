@@ -1,2 +1,6 @@
-namespace parse {
+namespace fae {
+
+class Parser {
+};
+
 }

@@ -1,155 +1,161 @@
-namespace token {
-  enum class Tag : u8 {
-    // special
+namespace fae::token {
 
-    STOP,
-    ILLEGAL,
+struct Token {
+  enum class Tag : u8;
 
-    // identifier
+  Tag tag;
+  char const * start;
+  char const * stop;
 
-    IDENTIFIER,
+  static Token make(Tag, char const *, char const *);
+  static void print(Token const &);
+};
 
-    // literal
+enum class Token::Tag : u8 {
+  // special
 
-    NUMBER,
-    STRING,
+  STOP,
+  ILLEGAL,
 
-    // punctuation
+  // identifier
 
-    COLON,            // :
-    COMMA,            // ,
-    DOT,              // .
-    SEMICOLON,        // ;
-    LPAREN,           // (
-    LPAREN_NOSPACE,   // (
-    LBRACKET,         // [
-    LBRACKET_NOSPACE, // [
-    LBRACE,           // {
-    RPAREN,           // )
-    RBRACKET,         // ]
-    RBRACE,           // }
+  IDENTIFIER,
 
-    // operator
+  // literal
 
-    ASSIGN,    // =
+  NUMBER,
+  STRING,
 
-    EQ,        // ==
-    NE,        // !=
-    LT,        // <
-    GT,        // >
-    LE,        // <=
-    GE,        // >=
+  // punctuation
 
-    PLUS,      // +
-    MINUS,     // -
-    STAR,      // *
-    SLASH,     // /
+  COLON,            // :
+  COMMA,            // ,
+  DOT,              // .
+  SEMICOLON,        // ;
+  LPAREN,           // (
+  LPAREN_NOSPACE,   // (
+  LBRACKET,         // [
+  LBRACKET_NOSPACE, // [
+  LBRACE,           // {
+  RPAREN,           // )
+  RBRACKET,         // ]
+  RBRACE,           // }
 
-    AMPERSAND, // &
-    AT,        // @
-    BANG,      // !
-    CARET,     // ^
-    DOLLAR,    // $
-    PERCENT,   // %
-    PIPE,      // |
-    QUERY,     // ?
-    TILDE,     // ~
+  // operator
 
-    // keyword
+  ASSIGN,    // =
 
-    AND,
-    BREAK,
-    ELIF,
-    ELSE,
-    END,
-    FOR,
-    FUN,
-    IF,
-    LET,
-    LOOP,
-    OR,
-    RETURN,
-    WHILE,
-  };
+  EQ,        // ==
+  NE,        // !=
+  LT,        // <
+  GT,        // >
+  LE,        // <=
+  GE,        // >=
+
+  PLUS,      // +
+  MINUS,     // -
+  STAR,      // *
+  SLASH,     // /
+
+  AMPERSAND, // &
+  AT,        // @
+  BANG,      // !
+  CARET,     // ^
+  DOLLAR,    // $
+  PERCENT,   // %
+  PIPE,      // |
+  QUERY,     // ?
+  TILDE,     // ~
+
+  // keyword
+
+  AND,
+  BREAK,
+  ELIF,
+  ELSE,
+  END,
+  FOR,
+  FUN,
+  IF,
+  LET,
+  LOOP,
+  OR,
+  RETURN,
+  WHILE,
+};
+
+Token Token::make(Tag tag, char const * start, char const * stop) {
+  return { tag, start, stop };
 }
 
-namespace token::tag {
-  char const * ToString(Tag tag) {
+namespace internal {
+  char const * to_string(Token::Tag tag) {
+    using enum Token::Tag;
+
     switch (tag) {
-      case Tag::STOP: return "STOP";
-      case Tag::ILLEGAL: return "ILLEGAL";
-      case Tag::IDENTIFIER: return "IDENTIFIER";
-      case Tag::NUMBER: return "NUMBER";
-      case Tag::STRING: return "STRING";
-      case Tag::COLON: return "COLON";
-      case Tag::COMMA: return "COMMA";
-      case Tag::DOT: return "DOT";
-      case Tag::SEMICOLON: return "SEMICOLON";
-      case Tag::LPAREN: return "LPAREN";
-      case Tag::LPAREN_NOSPACE: return "LPAREN_NOSPACE";
-      case Tag::LBRACKET: return "LBRACKET";
-      case Tag::LBRACKET_NOSPACE: return "LBRACKET_NOSPACE";
-      case Tag::LBRACE: return "LBRACE";
-      case Tag::RPAREN: return "RPAREN";
-      case Tag::RBRACKET: return "RBRACKET";
-      case Tag::RBRACE: return "RBRACE";
-      case Tag::ASSIGN: return "ASSIGN";
-      case Tag::EQ: return "EQ";
-      case Tag::NE: return "NE";
-      case Tag::LT: return "LT";
-      case Tag::GT: return "GT";
-      case Tag::LE: return "LE";
-      case Tag::GE: return "GE";
-      case Tag::PLUS: return "PLUS";
-      case Tag::MINUS: return "MINUS";
-      case Tag::STAR: return "STAR";
-      case Tag::SLASH: return "SLASH";
-      case Tag::AMPERSAND: return "AMPERSAND";
-      case Tag::AT: return "AT";
-      case Tag::BANG: return "BANG";
-      case Tag::CARET: return "CARET";
-      case Tag::DOLLAR: return "DOLLAR";
-      case Tag::PERCENT: return "PERCENT";
-      case Tag::PIPE: return "PIPE";
-      case Tag::QUERY: return "QUERY";
-      case Tag::TILDE: return "TILDE";
-      case Tag::AND: return "AND";
-      case Tag::BREAK: return "BREAK";
-      case Tag::ELIF: return "ELIF";
-      case Tag::ELSE: return "ELSE";
-      case Tag::END: return "END";
-      case Tag::FOR: return "FOR";
-      case Tag::FUN: return "FUN";
-      case Tag::IF: return "IF";
-      case Tag::LET: return "LET";
-      case Tag::LOOP: return "LOOP";
-      case Tag::OR: return "OR";
-      case Tag::RETURN: return "RETURN";
-      case Tag::WHILE: return "WHILE";
+      case STOP: return "STOP";
+      case ILLEGAL: return "ILLEGAL";
+      case IDENTIFIER: return "IDENTIFIER";
+      case NUMBER: return "NUMBER";
+      case STRING: return "STRING";
+      case COLON: return "COLON";
+      case COMMA: return "COMMA";
+      case DOT: return "DOT";
+      case SEMICOLON: return "SEMICOLON";
+      case LPAREN: return "LPAREN";
+      case LPAREN_NOSPACE: return "LPAREN_NOSPACE";
+      case LBRACKET: return "LBRACKET";
+      case LBRACKET_NOSPACE: return "LBRACKET_NOSPACE";
+      case LBRACE: return "LBRACE";
+      case RPAREN: return "RPAREN";
+      case RBRACKET: return "RBRACKET";
+      case RBRACE: return "RBRACE";
+      case ASSIGN: return "ASSIGN";
+      case EQ: return "EQ";
+      case NE: return "NE";
+      case LT: return "LT";
+      case GT: return "GT";
+      case LE: return "LE";
+      case GE: return "GE";
+      case PLUS: return "PLUS";
+      case MINUS: return "MINUS";
+      case STAR: return "STAR";
+      case SLASH: return "SLASH";
+      case AMPERSAND: return "AMPERSAND";
+      case AT: return "AT";
+      case BANG: return "BANG";
+      case CARET: return "CARET";
+      case DOLLAR: return "DOLLAR";
+      case PERCENT: return "PERCENT";
+      case PIPE: return "PIPE";
+      case QUERY: return "QUERY";
+      case TILDE: return "TILDE";
+      case AND: return "AND";
+      case BREAK: return "BREAK";
+      case ELIF: return "ELIF";
+      case ELSE: return "ELSE";
+      case END: return "END";
+      case FOR: return "FOR";
+      case FUN: return "FUN";
+      case IF: return "IF";
+      case LET: return "LET";
+      case LOOP: return "LOOP";
+      case OR: return "OR";
+      case RETURN: return "RETURN";
+      case WHILE: return "WHILE";
     }
 
     return "???";
   }
 }
 
-struct Token {
-  token::Tag tag;
-  char const * start;
-  char const * stop;
-};
-
-namespace token {
-  Token Make(Tag tag, char const * start, char const * stop) {
-    return { tag, start, stop };
-  }
-
-  void Print(Token const & tok) {
-    printf(
-        "%s: \"%.*s\"\n",
-        token::tag::ToString(tok.tag),
-        static_cast<int>(tok.stop - tok.start),
-        tok.start
-      );
-  }
+void Token::print(Token const & tok) {
+  printf(
+      "%s: \"%.*s\"\n",
+      token::internal::to_string(tok.tag),
+      static_cast<int>(tok.stop - tok.start),
+      tok.start
+    );
 }
 
+}

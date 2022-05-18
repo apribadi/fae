@@ -8,6 +8,7 @@
 #include <span>
 #include <stdexcept>
 #include <string_view>
+#include <type_traits>
 #include <vector>
 
 #include "prelude.cc"
@@ -16,8 +17,12 @@
 #include "name.cc"
 #include "token.cc"
 #include "lexer.cc"
-#include "syn.cc"
+#include "ast.cc"
 #include "parser.cc"
+
+using Arena = fae::arena::Arena;
+using Lexer = fae::lexer::Lexer;
+using Token = fae::token::Token;
 
 int main(int argc, char ** argv) {
   if (argc != 2) {
@@ -27,14 +32,14 @@ int main(int argc, char ** argv) {
   }
 
   Arena arena;
-  span<char> source = io::Read(arena, argv[1]);
+  span<char> source = fae::io::read(arena, argv[1]);
   Lexer lexer(source);
 
   for (;;) {
-    Token tok = lexer.Next();
-    token::Print(tok);
+    Token tok = lexer.next();
+    Token::print(tok);
 
-    if (tok.tag == token::Tag::STOP) break;
+    if (tok.tag == Token::Tag::STOP) break;
   }
 
   return 0;
