@@ -1,6 +1,0 @@
-namespace fae {
-
-class Parser {
-};
-
-}

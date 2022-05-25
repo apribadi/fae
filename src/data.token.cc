@@ -1,4 +1,4 @@
-namespace fae::token {
+namespace fae::data::token {
 
 struct Token {
   enum class Tag : u8;
@@ -7,8 +7,8 @@ struct Token {
   char const * start;
   char const * stop;
 
-  static Token make(Tag, char const *, char const *);
-  static void print(Token const &);
+  explicit Token(Tag, char const *, char const *);
+  void print();
 };
 
 enum class Token::Tag : u8 {
@@ -84,9 +84,7 @@ enum class Token::Tag : u8 {
   WHILE,
 };
 
-Token Token::make(Tag tag, char const * start, char const * stop) {
-  return { tag, start, stop };
-}
+Token::Token(Tag tag, char const * start, char const * stop) : tag(tag), start(start), stop(stop) { }
 
 namespace internal {
   char const * to_string(Token::Tag tag) {
@@ -149,12 +147,12 @@ namespace internal {
   }
 }
 
-void Token::print(Token const & tok) {
+void Token::print() {
   printf(
       "%s: \"%.*s\"\n",
-      token::internal::to_string(tok.tag),
-      static_cast<int>(tok.stop - tok.start),
-      tok.start
+      internal::to_string(tag),
+      static_cast<int>(stop - start),
+      start
     );
 }
 

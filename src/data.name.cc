@@ -1,9 +1,9 @@
-namespace fae::name {
+namespace fae::data::name {
 
 class Name {
 public:
-  constexpr static Name make(char const *, char const *);
-  constexpr static Name make(string_view);
+  constexpr explicit Name(char const *, char const *);
+  constexpr explicit Name(string_view);
   constexpr u64 hashcode();
 
 private:
@@ -12,7 +12,7 @@ private:
   constexpr explicit Name(u64);
 };
 
-namespace name::internal {
+namespace internal {
   // 64-bit hash
   //
   // The hash is invariant under null-padding. That is, we treat every string
@@ -89,19 +89,19 @@ namespace name::internal {
 
     return x;
   }
+
+  constexpr u64 hash(string_view s) {
+    char const * a = &s[0];
+    char const * b = a + s.size();
+    return hash(a, b);
+  }
 }
 
-constexpr Name::Name(u64 x) : value(x) {};
+constexpr Name::Name(u64 x) : value(x) { };
 
-constexpr Name Name::make(char const * a, char const * b) {
-  return Name(name::internal::hash(a, b));
-}
+constexpr Name::Name(char const * a, char const * b) : Name(internal::hash(a, b)) { };
 
-constexpr Name Name::make(string_view s) {
-  char const * a = &s[0];
-  char const * b = a + s.size();
-  return Name(name::internal::hash(a, b));
-}
+constexpr Name::Name(string_view s) : Name(internal::hash(s)) { };
 
 constexpr u64 Name::hashcode() {
   return value;

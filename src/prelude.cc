@@ -17,4 +17,5 @@ using std::rotr;
 using std::runtime_error;
 using std::span;
 using std::string_view;
+using std::to_array;
 using std::vector;

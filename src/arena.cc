@@ -13,9 +13,9 @@ public:
   template<class T, class ... A> T * make(A && ... a);
   template<class T, class ... A> T * make_array(size_t n, A && ... a);
   template<class T, class ... A> span<T> make_span(size_t n, A && ... a);
-  template<class T, class U, class ... A> T * make_fam(size_t n, A && ... a);
+  template<class T, class U, class ... A> T * make_flex(size_t n, A && ... a);
 
-  void Clear();
+  void clear();
 
 private:
   size_t capacity;
@@ -36,8 +36,7 @@ Arena::Arena() :
   capacity(0),
   mark(0),
   chunk(nullptr),
-  full_chunks()
-{
+  full_chunks() {
 }
 
 Arena::~Arena() {
@@ -91,7 +90,7 @@ span<T> Arena::make_span(size_t n, A && ... a) {
 }
 
 template<class T, class U, class ... A>
-T * Arena::make_fam(size_t n, A && ... a) {
+T * Arena::make_flex(size_t n, A && ... a) {
   static_assert(is_trivially_destructible<T>());
   static_assert(alignof(T) <= arena::internal::CHUNK_ALIGNMENT);
 
@@ -102,7 +101,7 @@ T * Arena::make_fam(size_t n, A && ... a) {
   return new (allocate(sizeof(T) + n * sizeof(U), alignof(T))) T(forward<A>(a) ...);
 }
 
-void Arena::Clear() {
+void Arena::clear() {
   // If we have any allocated chunks, then we reset and retain the most
   // recently allocated chunk but deallocate the other chunks.
 

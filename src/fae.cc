@@ -13,16 +13,15 @@
 
 #include "prelude.cc"
 #include "arena.cc"
+#include "data.token.cc"
+#include "data.name.cc"
+#include "data.ast.cc"
 #include "io.cc"
-#include "name.cc"
-#include "token.cc"
-#include "lexer.cc"
-#include "ast.cc"
-#include "parser.cc"
+#include "lex.cc"
+#include "parse.cc"
 
 using Arena = fae::arena::Arena;
-using Lexer = fae::lexer::Lexer;
-using Token = fae::token::Token;
+using Token = fae::data::token::Token;
 
 int main(int argc, char ** argv) {
   if (argc != 2) {
@@ -33,11 +32,18 @@ int main(int argc, char ** argv) {
 
   Arena arena;
   span<char> source = fae::io::read(arena, argv[1]);
-  Lexer lexer(source);
+
+  size_t n = source.size();
+  assert(n >= 1);
+  assert(source[n - 1] == '\0');
+
+  char const * start = &source[0];
+  char const * stop = &source[n - 1];
 
   for (;;) {
-    Token tok = lexer.next();
-    Token::print(tok);
+    Token tok = fae::lex::next(start, stop);
+    start = tok.stop;
+    tok.print();
 
     if (tok.tag == Token::Tag::STOP) break;
   }
