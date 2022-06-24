@@ -1,18 +1,4 @@
-namespace fae::ir::name {
-
-class Name {
-public:
-  constexpr explicit Name(char const *, char const *);
-  constexpr explicit Name(string_view);
-  constexpr u64 hashcode();
-
-private:
-  u64 value;
-
-  constexpr explicit Name(u64);
-};
-
-namespace internal {
+namespace fae::ir::name::internal {
   // 64-bit hash
   //
   // The hash is invariant under null-padding. That is, we treat every string
@@ -97,18 +83,30 @@ namespace internal {
   }
 }
 
-constexpr Name::Name(u64 x) : value(x) { };
+namespace fae::ir {
+  class Name {
+  public:
+    constexpr explicit Name(char const *, char const *);
+    constexpr explicit Name(string_view);
+    constexpr u64 hashcode();
 
-constexpr Name::Name(char const * a, char const * b) : Name(internal::hash(a, b)) { };
+  private:
+    u64 value;
 
-constexpr Name::Name(string_view s) : Name(internal::hash(s)) { };
+    constexpr explicit Name(u64);
+  };
 
-constexpr u64 Name::hashcode() {
-  return value;
-}
+  constexpr Name::Name(u64 x) : value(x) { };
 
-constexpr bool operator==(Name a, Name b) {
-  return a.hashcode() == b.hashcode();;
-}
+  constexpr Name::Name(char const * a, char const * b) : Name(name::internal::hash(a, b)) { };
 
+  constexpr Name::Name(string_view s) : Name(name::internal::hash(s)) { };
+
+  constexpr u64 Name::hashcode() {
+    return value;
+  }
+
+  constexpr bool operator==(Name a, Name b) {
+    return a.hashcode() == b.hashcode();;
+  }
 }

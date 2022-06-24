@@ -1,8 +1,8 @@
 namespace fae::fe::lex {
+  using Token = fae::ir::Token;
+}
 
-using Token = fae::ir::Token;
-
-namespace internal {
+namespace fae::fe::lex::internal {
   enum class Kind : u8 {
     ILLEGAL = 0,
     DIGIT,
@@ -17,111 +17,113 @@ namespace internal {
     SPACE,
     UNDERSCORE,
   };
+}
 
-  namespace kind {
-    using enum Kind;
+namespace fae::fe::lex::internal::kind {
+  using enum Kind;
 
-    constexpr size_t NUM_VALUES = 12;
+  constexpr size_t NUM_VALUES = 12;
 
-    constexpr Kind TABLE[256] = {
-      [ '\0' ] = NIL,
-      [ '\n' ] = LINEBREAK,
-      [ '\r' ] = LINEBREAK,
-      [ ' ' ] = SPACE,
-      [ '!' ] = OPERATOR,
-      [ '"' ] = QUOTE,
-      [ '#' ] = HASH,
-      [ '$' ] = OPERATOR,
-      [ '%' ] = OPERATOR,
-      [ '&' ] = OPERATOR,
-      [ '(' ] = PUNCTUATION,
-      [ ')' ] = PUNCTUATION,
-      [ '*' ] = OPERATOR,
-      [ '+' ] = OPERATOR,
-      [ ',' ] = PUNCTUATION,
-      [ '-' ] = OPERATOR,
-      [ '.' ] = DOT,
-      [ '/' ] = OPERATOR,
-      [ '0' ] = DIGIT,
-      [ '1' ] = DIGIT,
-      [ '2' ] = DIGIT,
-      [ '3' ] = DIGIT,
-      [ '4' ] = DIGIT,
-      [ '5' ] = DIGIT,
-      [ '6' ] = DIGIT,
-      [ '7' ] = DIGIT,
-      [ '8' ] = DIGIT,
-      [ '9' ] = DIGIT,
-      [ ':' ] = PUNCTUATION,
-      [ ';' ] = PUNCTUATION,
-      [ '<' ] = OPERATOR,
-      [ '=' ] = OPERATOR,
-      [ '>' ] = OPERATOR,
-      [ '?' ] = OPERATOR,
-      [ '@' ] = OPERATOR,
-      [ 'A' ] = LETTER,
-      [ 'B' ] = LETTER,
-      [ 'C' ] = LETTER,
-      [ 'D' ] = LETTER,
-      [ 'E' ] = LETTER,
-      [ 'F' ] = LETTER,
-      [ 'G' ] = LETTER,
-      [ 'H' ] = LETTER,
-      [ 'I' ] = LETTER,
-      [ 'J' ] = LETTER,
-      [ 'K' ] = LETTER,
-      [ 'L' ] = LETTER,
-      [ 'M' ] = LETTER,
-      [ 'N' ] = LETTER,
-      [ 'O' ] = LETTER,
-      [ 'P' ] = LETTER,
-      [ 'Q' ] = LETTER,
-      [ 'R' ] = LETTER,
-      [ 'S' ] = LETTER,
-      [ 'T' ] = LETTER,
-      [ 'U' ] = LETTER,
-      [ 'V' ] = LETTER,
-      [ 'W' ] = LETTER,
-      [ 'X' ] = LETTER,
-      [ 'Y' ] = LETTER,
-      [ 'Z' ] = LETTER,
-      [ '[' ] = PUNCTUATION,
-      [ ']' ] = PUNCTUATION,
-      [ '^' ] = OPERATOR,
-      [ '_' ] = UNDERSCORE,
-      [ 'a' ] = LETTER,
-      [ 'b' ] = LETTER,
-      [ 'c' ] = LETTER,
-      [ 'd' ] = LETTER,
-      [ 'e' ] = LETTER,
-      [ 'f' ] = LETTER,
-      [ 'g' ] = LETTER,
-      [ 'h' ] = LETTER,
-      [ 'i' ] = LETTER,
-      [ 'j' ] = LETTER,
-      [ 'k' ] = LETTER,
-      [ 'l' ] = LETTER,
-      [ 'm' ] = LETTER,
-      [ 'n' ] = LETTER,
-      [ 'o' ] = LETTER,
-      [ 'p' ] = LETTER,
-      [ 'q' ] = LETTER,
-      [ 'r' ] = LETTER,
-      [ 's' ] = LETTER,
-      [ 't' ] = LETTER,
-      [ 'u' ] = LETTER,
-      [ 'v' ] = LETTER,
-      [ 'w' ] = LETTER,
-      [ 'x' ] = LETTER,
-      [ 'y' ] = LETTER,
-      [ 'z' ] = LETTER,
-      [ '{' ] = PUNCTUATION,
-      [ '|' ] = OPERATOR,
-      [ '}' ] = PUNCTUATION,
-      [ '~' ] = OPERATOR,
-    };
-  }
+  constexpr Kind TABLE[256] = {
+    [ '\0' ] = NIL,
+    [ '\n' ] = LINEBREAK,
+    [ '\r' ] = LINEBREAK,
+    [ ' ' ] = SPACE,
+    [ '!' ] = OPERATOR,
+    [ '"' ] = QUOTE,
+    [ '#' ] = HASH,
+    [ '$' ] = OPERATOR,
+    [ '%' ] = OPERATOR,
+    [ '&' ] = OPERATOR,
+    [ '(' ] = PUNCTUATION,
+    [ ')' ] = PUNCTUATION,
+    [ '*' ] = OPERATOR,
+    [ '+' ] = OPERATOR,
+    [ ',' ] = PUNCTUATION,
+    [ '-' ] = OPERATOR,
+    [ '.' ] = DOT,
+    [ '/' ] = OPERATOR,
+    [ '0' ] = DIGIT,
+    [ '1' ] = DIGIT,
+    [ '2' ] = DIGIT,
+    [ '3' ] = DIGIT,
+    [ '4' ] = DIGIT,
+    [ '5' ] = DIGIT,
+    [ '6' ] = DIGIT,
+    [ '7' ] = DIGIT,
+    [ '8' ] = DIGIT,
+    [ '9' ] = DIGIT,
+    [ ':' ] = PUNCTUATION,
+    [ ';' ] = PUNCTUATION,
+    [ '<' ] = OPERATOR,
+    [ '=' ] = OPERATOR,
+    [ '>' ] = OPERATOR,
+    [ '?' ] = OPERATOR,
+    [ '@' ] = OPERATOR,
+    [ 'A' ] = LETTER,
+    [ 'B' ] = LETTER,
+    [ 'C' ] = LETTER,
+    [ 'D' ] = LETTER,
+    [ 'E' ] = LETTER,
+    [ 'F' ] = LETTER,
+    [ 'G' ] = LETTER,
+    [ 'H' ] = LETTER,
+    [ 'I' ] = LETTER,
+    [ 'J' ] = LETTER,
+    [ 'K' ] = LETTER,
+    [ 'L' ] = LETTER,
+    [ 'M' ] = LETTER,
+    [ 'N' ] = LETTER,
+    [ 'O' ] = LETTER,
+    [ 'P' ] = LETTER,
+    [ 'Q' ] = LETTER,
+    [ 'R' ] = LETTER,
+    [ 'S' ] = LETTER,
+    [ 'T' ] = LETTER,
+    [ 'U' ] = LETTER,
+    [ 'V' ] = LETTER,
+    [ 'W' ] = LETTER,
+    [ 'X' ] = LETTER,
+    [ 'Y' ] = LETTER,
+    [ 'Z' ] = LETTER,
+    [ '[' ] = PUNCTUATION,
+    [ ']' ] = PUNCTUATION,
+    [ '^' ] = OPERATOR,
+    [ '_' ] = UNDERSCORE,
+    [ 'a' ] = LETTER,
+    [ 'b' ] = LETTER,
+    [ 'c' ] = LETTER,
+    [ 'd' ] = LETTER,
+    [ 'e' ] = LETTER,
+    [ 'f' ] = LETTER,
+    [ 'g' ] = LETTER,
+    [ 'h' ] = LETTER,
+    [ 'i' ] = LETTER,
+    [ 'j' ] = LETTER,
+    [ 'k' ] = LETTER,
+    [ 'l' ] = LETTER,
+    [ 'm' ] = LETTER,
+    [ 'n' ] = LETTER,
+    [ 'o' ] = LETTER,
+    [ 'p' ] = LETTER,
+    [ 'q' ] = LETTER,
+    [ 'r' ] = LETTER,
+    [ 's' ] = LETTER,
+    [ 't' ] = LETTER,
+    [ 'u' ] = LETTER,
+    [ 'v' ] = LETTER,
+    [ 'w' ] = LETTER,
+    [ 'x' ] = LETTER,
+    [ 'y' ] = LETTER,
+    [ 'z' ] = LETTER,
+    [ '{' ] = PUNCTUATION,
+    [ '|' ] = OPERATOR,
+    [ '}' ] = PUNCTUATION,
+    [ '~' ] = OPERATOR,
+  };
+}
 
+namespace fae::fe::lex::internal {
   enum class State {
     RESTART = 0,
     START,
@@ -142,146 +144,148 @@ namespace internal {
     STOP_PUNCTUATION_NOSPACE,
     STOP_STRING,
   };
+}
 
-  namespace state {
-    using enum State;
+namespace fae::fe::lex::internal::state {
+  using enum State;
 
-    constexpr size_t NUM_VALUES_NONTERMINAL = 8;
-    constexpr size_t NUM_VALUES_TERMINAL = 10;
-    constexpr size_t NUM_VALUES = NUM_VALUES_NONTERMINAL + NUM_VALUES_TERMINAL;
+  constexpr size_t NUM_VALUES_NONTERMINAL = 8;
+  constexpr size_t NUM_VALUES_TERMINAL = 10;
+  constexpr size_t NUM_VALUES = NUM_VALUES_NONTERMINAL + NUM_VALUES_TERMINAL;
 
-    constexpr array<State, kind::NUM_VALUES> TABLE_RESTART = {
-      STOP_ILLEGAL_CHARACTER,
-      NUMBER,
-      DOT,
-      COMMENT,
-      IDENTIFIER,
-      RESTART,
-      STOP_NIL,
-      OPERATOR,
-      STOP_PUNCTUATION,
-      STRING,
-      RESTART,
-      IDENTIFIER,
-    };
+  constexpr array<State, kind::NUM_VALUES> TABLE_RESTART = {
+    STOP_ILLEGAL_CHARACTER,
+    NUMBER,
+    DOT,
+    COMMENT,
+    IDENTIFIER,
+    RESTART,
+    STOP_NIL,
+    OPERATOR,
+    STOP_PUNCTUATION,
+    STRING,
+    RESTART,
+    IDENTIFIER,
+  };
 
-    constexpr array<State, kind::NUM_VALUES> TABLE_START = {
-      STOP_ILLEGAL_CHARACTER,
-      NUMBER,
-      DOT,
-      COMMENT,
-      IDENTIFIER,
-      RESTART,
-      STOP_NIL,
-      OPERATOR,
-      STOP_PUNCTUATION_NOSPACE,
-      STRING,
-      RESTART,
-      IDENTIFIER,
-    };
+  constexpr array<State, kind::NUM_VALUES> TABLE_START = {
+    STOP_ILLEGAL_CHARACTER,
+    NUMBER,
+    DOT,
+    COMMENT,
+    IDENTIFIER,
+    RESTART,
+    STOP_NIL,
+    OPERATOR,
+    STOP_PUNCTUATION_NOSPACE,
+    STRING,
+    RESTART,
+    IDENTIFIER,
+  };
 
-    constexpr array<State, kind::NUM_VALUES> TABLE_COMMENT = {
-      COMMENT,
-      COMMENT,
-      COMMENT,
-      COMMENT,
-      COMMENT,
-      RESTART,
-      STOP_NIL,
-      COMMENT,
-      COMMENT,
-      COMMENT,
-      COMMENT,
-      COMMENT,
-    };
+  constexpr array<State, kind::NUM_VALUES> TABLE_COMMENT = {
+    COMMENT,
+    COMMENT,
+    COMMENT,
+    COMMENT,
+    COMMENT,
+    RESTART,
+    STOP_NIL,
+    COMMENT,
+    COMMENT,
+    COMMENT,
+    COMMENT,
+    COMMENT,
+  };
 
-    constexpr array<State, kind::NUM_VALUES> TABLE_DOT = {
-      STOP_DOT,
-      STOP_DOT,
-      DOT,
-      STOP_DOT,
-      STOP_DOT,
-      STOP_DOT,
-      STOP_DOT,
-      STOP_DOT,
-      STOP_DOT,
-      STOP_DOT,
-      STOP_DOT,
-      STOP_DOT,
-    };
+  constexpr array<State, kind::NUM_VALUES> TABLE_DOT = {
+    STOP_DOT,
+    STOP_DOT,
+    DOT,
+    STOP_DOT,
+    STOP_DOT,
+    STOP_DOT,
+    STOP_DOT,
+    STOP_DOT,
+    STOP_DOT,
+    STOP_DOT,
+    STOP_DOT,
+    STOP_DOT,
+  };
 
-    constexpr array<State, kind::NUM_VALUES> TABLE_IDENTIFIER = {
-      STOP_IDENTIFIER,
-      IDENTIFIER,
-      STOP_IDENTIFIER,
-      STOP_IDENTIFIER,
-      IDENTIFIER,
-      STOP_IDENTIFIER,
-      STOP_IDENTIFIER,
-      STOP_IDENTIFIER,
-      STOP_IDENTIFIER,
-      STOP_IDENTIFIER,
-      STOP_IDENTIFIER,
-      IDENTIFIER,
-    };
+  constexpr array<State, kind::NUM_VALUES> TABLE_IDENTIFIER = {
+    STOP_IDENTIFIER,
+    IDENTIFIER,
+    STOP_IDENTIFIER,
+    STOP_IDENTIFIER,
+    IDENTIFIER,
+    STOP_IDENTIFIER,
+    STOP_IDENTIFIER,
+    STOP_IDENTIFIER,
+    STOP_IDENTIFIER,
+    STOP_IDENTIFIER,
+    STOP_IDENTIFIER,
+    IDENTIFIER,
+  };
 
-    constexpr array<State, kind::NUM_VALUES> TABLE_NUMBER = {
-      STOP_NUMBER,
-      NUMBER,
-      NUMBER,
-      STOP_NUMBER,
-      STOP_NUMBER,
-      STOP_NUMBER,
-      STOP_NUMBER,
-      STOP_NUMBER,
-      STOP_NUMBER,
-      STOP_NUMBER,
-      STOP_NUMBER,
-      STOP_NUMBER,
-    };
+  constexpr array<State, kind::NUM_VALUES> TABLE_NUMBER = {
+    STOP_NUMBER,
+    NUMBER,
+    NUMBER,
+    STOP_NUMBER,
+    STOP_NUMBER,
+    STOP_NUMBER,
+    STOP_NUMBER,
+    STOP_NUMBER,
+    STOP_NUMBER,
+    STOP_NUMBER,
+    STOP_NUMBER,
+    STOP_NUMBER,
+  };
 
-    constexpr array<State, kind::NUM_VALUES> TABLE_OPERATOR = {
-      STOP_OPERATOR,
-      STOP_OPERATOR,
-      STOP_OPERATOR,
-      STOP_OPERATOR,
-      STOP_OPERATOR,
-      STOP_OPERATOR,
-      STOP_OPERATOR,
-      OPERATOR,
-      STOP_OPERATOR,
-      STOP_OPERATOR,
-      STOP_OPERATOR,
-      STOP_OPERATOR,
-    };
+  constexpr array<State, kind::NUM_VALUES> TABLE_OPERATOR = {
+    STOP_OPERATOR,
+    STOP_OPERATOR,
+    STOP_OPERATOR,
+    STOP_OPERATOR,
+    STOP_OPERATOR,
+    STOP_OPERATOR,
+    STOP_OPERATOR,
+    OPERATOR,
+    STOP_OPERATOR,
+    STOP_OPERATOR,
+    STOP_OPERATOR,
+    STOP_OPERATOR,
+  };
 
-    constexpr array<State, kind::NUM_VALUES> TABLE_STRING = {
-      STRING,
-      STRING,
-      STRING,
-      STRING,
-      STRING,
-      STRING,
-      STOP_ILLEGAL_TOKEN,
-      STRING,
-      STRING,
-      STOP_STRING,
-      STRING,
-      STRING,
-    };
+  constexpr array<State, kind::NUM_VALUES> TABLE_STRING = {
+    STRING,
+    STRING,
+    STRING,
+    STRING,
+    STRING,
+    STRING,
+    STOP_ILLEGAL_TOKEN,
+    STRING,
+    STRING,
+    STOP_STRING,
+    STRING,
+    STRING,
+  };
 
-    constexpr array<array<State, kind::NUM_VALUES>, NUM_VALUES_NONTERMINAL> TABLE = {
-      TABLE_RESTART,
-      TABLE_START,
-      TABLE_COMMENT,
-      TABLE_DOT,
-      TABLE_IDENTIFIER,
-      TABLE_NUMBER,
-      TABLE_OPERATOR,
-      TABLE_STRING,
-    };
-  }
+  constexpr array<array<State, kind::NUM_VALUES>, NUM_VALUES_NONTERMINAL> TABLE = {
+    TABLE_RESTART,
+    TABLE_START,
+    TABLE_COMMENT,
+    TABLE_DOT,
+    TABLE_IDENTIFIER,
+    TABLE_NUMBER,
+    TABLE_OPERATOR,
+    TABLE_STRING,
+  };
+}
 
+namespace fae::fe::lex::internal {
   struct Table {
     array<Kind, 256> classify;
     array<array<State, kind::NUM_VALUES>, state::NUM_VALUES_NONTERMINAL> transition;
@@ -449,8 +453,8 @@ namespace internal {
   };
 }
 
-Token next(char const * start, char const * stop) {
-  return internal::next__start(internal::global_table, start, stop);
-}
-
+namespace fae::fe::lex {
+  Token next(char const * start, char const * stop) {
+    return internal::next__start(internal::global_table, start, stop);
+  }
 }

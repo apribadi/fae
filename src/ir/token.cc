@@ -1,5 +1,4 @@
 namespace fae::ir {
-
   struct Token {
     enum class Tag : u8;
 
@@ -149,7 +148,6 @@ namespace fae::ir::token::internal {
 }
 
 namespace fae::ir::token {
-
   void print(Token const & tok) {
     printf(
         "%s: \"%.*s\"\n",
@@ -158,5 +156,4 @@ namespace fae::ir::token {
         tok.start
       );
   }
-
 }
