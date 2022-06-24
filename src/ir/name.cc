@@ -1,4 +1,4 @@
-namespace fae::data::name {
+namespace fae::ir::name {
 
 class Name {
 public:

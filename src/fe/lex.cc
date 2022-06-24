@@ -1,6 +1,6 @@
-namespace fae::lex {
+namespace fae::fe::lex {
 
-using Token = fae::data::token::Token;
+using Token = fae::ir::Token;
 
 namespace internal {
   enum class Kind : u8 {

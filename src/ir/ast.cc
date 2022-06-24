@@ -1,90 +1,58 @@
-namespace fae::data::ast {
+namespace fae::ir::ast {
 
-using Name = fae::data::name::Name;
+using Name = fae::ir::name::Name;
+
+class Call;
+class Decl;
+class Expr;
+class If;
+class Op1;
+class Op2;
+class Op3;
+class Seq;
+class Stmt;
+class Var;
 
 class Expr {
 public:
-  enum class Tag : u8;
+  enum class Tag : u8 {
+    CALL,
+    IF,
+    OP1,
+    OP2,
+    OP3,
+    VARIABLE,
+  };
 
-  class Base;
-  class Call;
-  class Variable;
+  Tag const tag;
 
-  explicit Expr(Tag, Base *);
-  explicit Expr(Call *);
-  explicit Expr(Variable *);
-
-  Base * operator->();
-
-  Tag tag();
-  Base * ptr();
-  template<class T> T * as();
-
-private:
-  uintptr_t value;
+  explicit Expr(Tag tag) : tag(tag) { }
 };
 
-enum class Expr::Tag : u8 {
-  CALL,
-  VARIABLE,
-};
-
-class alignas(8) Expr::Base {
-};
-
-class Expr::Call : public Expr::Base {
+class Op1 : public Expr {
 public:
-  u8 arity;
-  Name name;
-  Expr args[];
+  Name const name;
+  Expr const * const arg;
 
-  explicit Call(u8 arity, Name name) : arity(arity), name(name) { }
-
-  explicit Call(Name name, Expr arg0) : Call(1, name) {
-    args[0] = arg0;
-  }
-
-  explicit Call(Name name, Expr arg0, Expr arg1) : Call(2, name) {
-    args[0] = arg0;
-    args[1] = arg1;
-  }
+  explicit Op1(Name name, Expr const * arg) :
+    Expr(Expr::Tag::OP1),
+    name(name),
+    arg(arg)
+  { }
 };
 
-class Expr::Variable : public Expr::Base {
-  Name name;
-};
+class Op2 : public Expr {
+public:
+  Name const name;
+  Expr const * const arg0;
+  Expr const * const arg1;
 
-Expr::Expr(Tag tag, Base * ptr) {
-  static_assert(alignof(Base) >= 8);
-
-  uintptr_t p = reinterpret_cast<uintptr_t>(ptr);
-  uintptr_t q = static_cast<uintptr_t>(tag);
-
-  value = p | q;
-}
-
-Expr::Expr(Call * ptr) : Expr(Tag::CALL, static_cast<Base *>(ptr)) { }
-
-Expr::Expr(Variable * ptr) : Expr(Tag::VARIABLE, static_cast<Base *>(ptr)) { }
-
-Expr::Tag Expr::tag() {
-  return static_cast<Tag>(value & 0x7);
-}
-
-Expr::Base * Expr::ptr() {
-  return reinterpret_cast<Base *>(value & ~0x7);
-}
-
-Expr::Base * Expr::operator->() {
-  return ptr();
-}
-
-template<class T>
-T * Expr::as() {
-  return static_cast<T *>(ptr());
-}
-
-class Stmt {
+  explicit Op2(Name name, Expr const * arg0, Expr const * arg1) :
+    Expr(Expr::Tag::OP2),
+    name(name),
+    arg0(arg0),
+    arg1(arg1)
+  { }
 };
 
 }

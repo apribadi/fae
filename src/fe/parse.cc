@@ -1,26 +1,33 @@
-/*
-namespace fae::parse {
+namespace fae::fe::parse {
 
-using Arena = arena::Arena;
-using Token = token::Token;
+using Arena = fae::mm::Arena;
+using Token = fae::ir::Token;
 
 class Parser {
 public:
-  explicit Parser(Arena &, char const *, char const *);
+  explicit Parser(Arena &, span<char>);
 
-private:
+// private:
   Arena * arena;
   Token token;
-  char const * filename;
-  char const * source;
+  char const * start;
+  char const * stop;
+  char const * cursor;
 };
 
-Parser::Parser(Arena & arena, char const * filename, char const * source) :
+Parser::Parser(Arena & arena, span<char> source) :
   arena(& arena),
-  filename(filename),
-  source(source)
+  token(Token(Token::Tag::ILLEGAL, nullptr, nullptr))
 {
-  token = Token(Token::Tag::ILLEGAL, nullptr, nullptr);
+  size_t n = source.size();
+
+  assert(n >= 1);
+  assert(source[n - 1] == '\0');
+
+  start = &source[0];
+  stop = &source[n - 1];
+  token = fae::fe::lex::next(start, stop);
+  cursor = token.stop;
+}
 
 }
-*/

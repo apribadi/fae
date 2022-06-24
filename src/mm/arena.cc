@@ -1,4 +1,9 @@
-namespace fae::arena {
+namespace fae::mm::arena::internal {
+  constexpr size_t CHUNK_ALIGNMENT = 1 << 21; // 2MB
+  constexpr size_t CHUNK_INCREMENT = 1 << 21;
+}
+
+namespace fae::mm {
 
 class Arena {
 public:
@@ -26,11 +31,6 @@ private:
   void * allocate(size_t, size_t);
   void * allocate_slow(size_t, size_t);
 };
-
-namespace arena::internal {
-  constexpr size_t CHUNK_ALIGNMENT = 1 << 21; // 2MB
-  constexpr size_t CHUNK_INCREMENT = 1 << 21;
-}
 
 Arena::Arena() :
   capacity(0),

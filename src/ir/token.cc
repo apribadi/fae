@@ -1,92 +1,93 @@
-namespace fae::data::token {
+namespace fae::ir {
 
-struct Token {
-  enum class Tag : u8;
+  struct Token {
+    enum class Tag : u8;
 
-  Tag tag;
-  char const * start;
-  char const * stop;
+    Tag tag;
+    char const * start;
+    char const * stop;
 
-  explicit Token(Tag, char const *, char const *);
-  void print();
-};
+    explicit Token(Tag, char const *, char const *);
+    void print();
+  };
 
-enum class Token::Tag : u8 {
-  // special
+  enum class Token::Tag : u8 {
+    // special
 
-  STOP,
-  ILLEGAL,
+    STOP,
+    ILLEGAL,
 
-  // identifier
+    // identifier
 
-  IDENTIFIER,
+    IDENTIFIER,
 
-  // literal
+    // literal
 
-  NUMBER,
-  STRING,
+    NUMBER,
+    STRING,
 
-  // punctuation
+    // punctuation
 
-  COLON,            // :
-  COMMA,            // ,
-  DOT,              // .
-  SEMICOLON,        // ;
-  LPAREN,           // (
-  LPAREN_NOSPACE,   // (
-  LBRACKET,         // [
-  LBRACKET_NOSPACE, // [
-  LBRACE,           // {
-  RPAREN,           // )
-  RBRACKET,         // ]
-  RBRACE,           // }
+    COLON,            // :
+    COMMA,            // ,
+    DOT,              // .
+    SEMICOLON,        // ;
+    LPAREN,           // (
+    LPAREN_NOSPACE,   // (
+    LBRACKET,         // [
+    LBRACKET_NOSPACE, // [
+    LBRACE,           // {
+    RPAREN,           // )
+    RBRACKET,         // ]
+    RBRACE,           // }
 
-  // operator
+    // operator
 
-  ASSIGN,    // =
+    ASSIGN,    // =
 
-  EQ,        // ==
-  NE,        // !=
-  LT,        // <
-  GT,        // >
-  LE,        // <=
-  GE,        // >=
+    EQ,        // ==
+    NE,        // !=
+    LT,        // <
+    GT,        // >
+    LE,        // <=
+    GE,        // >=
 
-  PLUS,      // +
-  MINUS,     // -
-  STAR,      // *
-  SLASH,     // /
+    PLUS,      // +
+    MINUS,     // -
+    STAR,      // *
+    SLASH,     // /
 
-  AMPERSAND, // &
-  AT,        // @
-  BANG,      // !
-  CARET,     // ^
-  DOLLAR,    // $
-  PERCENT,   // %
-  PIPE,      // |
-  QUERY,     // ?
-  TILDE,     // ~
+    AMPERSAND, // &
+    AT,        // @
+    BANG,      // !
+    CARET,     // ^
+    DOLLAR,    // $
+    PERCENT,   // %
+    PIPE,      // |
+    QUERY,     // ?
+    TILDE,     // ~
 
-  // keyword
+    // keyword
 
-  AND,
-  BREAK,
-  ELIF,
-  ELSE,
-  END,
-  FOR,
-  FUN,
-  IF,
-  LET,
-  LOOP,
-  OR,
-  RETURN,
-  WHILE,
-};
+    AND,
+    BREAK,
+    ELIF,
+    ELSE,
+    END,
+    FOR,
+    FUN,
+    IF,
+    LET,
+    LOOP,
+    OR,
+    RETURN,
+    WHILE,
+  };
 
-Token::Token(Tag tag, char const * start, char const * stop) : tag(tag), start(start), stop(stop) { }
+  Token::Token(Tag tag, char const * start, char const * stop) : tag(tag), start(start), stop(stop) { }
+}
 
-namespace internal {
+namespace fae::ir::token::internal {
   char const * to_string(Token::Tag tag) {
     using enum Token::Tag;
 
@@ -147,13 +148,15 @@ namespace internal {
   }
 }
 
-void Token::print() {
-  printf(
-      "%s: \"%.*s\"\n",
-      internal::to_string(tag),
-      static_cast<int>(stop - start),
-      start
-    );
-}
+namespace fae::ir::token {
+
+  void print(Token const & tok) {
+    printf(
+        "%s: \"%.*s\"\n",
+        internal::to_string(tok.tag),
+        static_cast<int>(tok.stop - tok.start),
+        tok.start
+      );
+  }
 
 }

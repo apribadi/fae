@@ -1,6 +1,6 @@
 .PHONY: test
 
-bin/fae: src/*.cc
+bin/fae: src/**/*.cc
 	clang++ \
 		-O2 \
 		-std=c++20 \

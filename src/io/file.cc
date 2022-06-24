@@ -1,6 +1,6 @@
-namespace fae::io {
+namespace fae::io::file {
 
-using Arena = arena::Arena;
+using Arena = fae::mm::Arena;
 
 span<char> read(Arena& arena, char const * path) {
   // TODO: don't leak file on error
