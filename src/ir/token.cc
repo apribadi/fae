@@ -3,10 +3,10 @@ namespace fae::ir {
     enum class Tag : u8;
 
     Tag tag;
-    char const * start;
-    char const * stop;
+    char * start;
+    char * stop;
 
-    explicit Token(Tag, char const *, char const *);
+    explicit Token(Tag, char *, char *);
     void print();
   };
 
@@ -83,7 +83,7 @@ namespace fae::ir {
     WHILE,
   };
 
-  Token::Token(Tag tag, char const * start, char const * stop) : tag(tag), start(start), stop(stop) { }
+  Token::Token(Tag tag, char * start, char * stop) : tag(tag), start(start), stop(stop) { }
 }
 
 namespace fae::ir::token::internal {
@@ -148,7 +148,7 @@ namespace fae::ir::token::internal {
 }
 
 namespace fae::ir::token {
-  void print(Token const & tok) {
+  void print(Token & tok) {
     printf(
         "%s: \"%.*s\"\n",
         internal::to_string(tok.tag),

@@ -1,4 +1,5 @@
 namespace fae::ir::name::internal {
+
   // 64-bit hash
   //
   // The hash is invariant under null-padding. That is, we treat every string
@@ -6,7 +7,7 @@ namespace fae::ir::name::internal {
   //
   // The hash is injective on 8-byte strings.
 
-  constexpr u64 read_peelable_loop(char const * a, size_t n) {
+  constexpr u64 read_peelable_loop(char * a, size_t n) {
     // For a constant `n` this code gets unrolled by clang into an appropriate
     // set of simple loads.
     u64 x = 0;
@@ -15,11 +16,11 @@ namespace fae::ir::name::internal {
     return x;
   }
 
-  constexpr u64 read_8b(char const * a) {
+  constexpr u64 read_8b(char * a) {
     return read_peelable_loop(a, 8);
   }
 
-  constexpr u64 read_1b_to_8b(char const * a, size_t n) {
+  constexpr u64 read_1b_to_8b(char * a, size_t n) {
     switch (n) {
       case 1: return read_peelable_loop(a, 1);
       case 2: return read_peelable_loop(a, 2);
@@ -55,7 +56,7 @@ namespace fae::ir::name::internal {
     return x;
   }
 
-  constexpr u64 hash(char const * a, char const * b) {
+  constexpr u64 hash(char * a, char * b) {
     if (a == b)
       return 0;
 
@@ -75,19 +76,13 @@ namespace fae::ir::name::internal {
 
     return x;
   }
-
-  constexpr u64 hash(string_view s) {
-    char const * a = &s[0];
-    char const * b = a + s.size();
-    return hash(a, b);
-  }
 }
 
 namespace fae::ir {
   class Name {
   public:
-    constexpr explicit Name(char const *, char const *);
-    constexpr explicit Name(string_view);
+    constexpr explicit Name(char *, char *);
+
     constexpr u64 hashcode();
 
   private:
@@ -98,9 +93,7 @@ namespace fae::ir {
 
   constexpr Name::Name(u64 x) : value(x) { };
 
-  constexpr Name::Name(char const * a, char const * b) : Name(name::internal::hash(a, b)) { };
-
-  constexpr Name::Name(string_view s) : Name(name::internal::hash(s)) { };
+  constexpr Name::Name(char * a, char * b) : Name(name::internal::hash(a, b)) { };
 
   constexpr u64 Name::hashcode() {
     return value;

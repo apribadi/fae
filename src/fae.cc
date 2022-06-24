@@ -58,8 +58,8 @@ int main(int argc, char ** argv) {
   assert(n >= 1);
   assert(source[n - 1] == '\0');
 
-  char const * start = &source[0];
-  char const * stop = &source[n - 1];
+  char * start = &source[0];
+  char * stop = &source[n - 1];
 
   for (;;) {
     Token tok = fae::fe::lex::next(start, stop);

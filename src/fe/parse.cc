@@ -10,9 +10,9 @@ public:
 // private:
   Arena * arena;
   Token token;
-  char const * start;
-  char const * stop;
-  char const * cursor;
+  char * start;
+  char * stop;
+  char * cursor;
 };
 
 Parser::Parser(Arena & arena, span<char> source) :

@@ -286,148 +286,150 @@ namespace fae::fe::lex::internal::state {
 }
 
 namespace fae::fe::lex::internal {
+  using enum Token::Tag;
+
   struct Table {
     array<Kind, 256> classify;
     array<array<State, kind::NUM_VALUES>, state::NUM_VALUES_NONTERMINAL> transition;
-    array<Token(*)(Table const &, char const *, char const *, char const *, State), state::NUM_VALUES> jump;
+    array<Token(*)(Table &, char *, char *, char *, State), state::NUM_VALUES> jump;
   };
 
-  Token next__start(Table const & table, char const * a, char const * b) {
+  Token next__start(Table & table, char * a, char * b) {
     State s = table.transition[(u8) State::START][(u8) table.classify[(u8) (* a)]];
     return table.jump[(u8) s](table, a, a, b, s);
   }
 
-  Token next__continue(Table const & table, char const * a, char const * b, char const * c, State s) {
+  Token next__continue(Table & table, char * a, char * b, char * c, State s) {
     a = s == State::RESTART ? b + 1 : a;
     b = b + 1;
     s = table.transition[(u8) s][(u8) table.classify[(u8) (* b)]];
     [[clang::musttail]] return table.jump[(u8) s](table, a, b, c, s);
   }
 
-  Token next__stop_dot(Table const &, char const * a, char const * b, char const *, State) {
+  Token next__stop_dot(Table &, char * a, char * b, char *, State) {
     if (b - a == 1)
-      return Token(Token::Tag::DOT, a, b);
+      return Token(DOT, a, b);
 
-    return Token(Token::Tag::ILLEGAL, a, b);
+    return Token(ILLEGAL, a, b);
   }
 
-  Token next__stop_identifier(Table const &, char const * a, char const * b, char const *, State) {
+  Token next__stop_identifier(Table &, char * a, char * b, char *, State) {
     switch (b - a) {
     case 2:
-      if (!bcmp(a, "if", 2)) return Token(Token::Tag::IF, a, b);
-      if (!bcmp(a, "or", 2)) return Token(Token::Tag::OR, a, b);
+      if (!bcmp(a, "if", 2)) return Token(IF, a, b);
+      if (!bcmp(a, "or", 2)) return Token(OR, a, b);
       break;
     case 3:
-      if (!bcmp(a, "and", 3)) return Token(Token::Tag::AND, a, b);
-      if (!bcmp(a, "end", 3)) return Token(Token::Tag::END, a, b);
-      if (!bcmp(a, "for", 3)) return Token(Token::Tag::FOR, a, b);
-      if (!bcmp(a, "fun", 3)) return Token(Token::Tag::FUN, a, b);
-      if (!bcmp(a, "let", 3)) return Token(Token::Tag::LET, a, b);
+      if (!bcmp(a, "and", 3)) return Token(AND, a, b);
+      if (!bcmp(a, "end", 3)) return Token(END, a, b);
+      if (!bcmp(a, "for", 3)) return Token(FOR, a, b);
+      if (!bcmp(a, "fun", 3)) return Token(FUN, a, b);
+      if (!bcmp(a, "let", 3)) return Token(LET, a, b);
       break;
     case 4:
-      if (!bcmp(a, "else", 4)) return Token(Token::Tag::ELSE, a, b);
-      if (!bcmp(a, "elif", 4)) return Token(Token::Tag::ELIF, a, b);
-      if (!bcmp(a, "loop", 4)) return Token(Token::Tag::LOOP, a, b);
+      if (!bcmp(a, "else", 4)) return Token(ELSE, a, b);
+      if (!bcmp(a, "elif", 4)) return Token(ELIF, a, b);
+      if (!bcmp(a, "loop", 4)) return Token(LOOP, a, b);
       break;
     case 5:
-      if (!bcmp(a, "break", 5)) return Token(Token::Tag::BREAK, a, b);
-      if (!bcmp(a, "while", 5)) return Token(Token::Tag::WHILE, a, b);
+      if (!bcmp(a, "break", 5)) return Token(BREAK, a, b);
+      if (!bcmp(a, "while", 5)) return Token(WHILE, a, b);
       break;
     case 6:
-      if (!bcmp(a, "return", 5)) return Token(Token::Tag::RETURN, a, b);
+      if (!bcmp(a, "return", 5)) return Token(RETURN, a, b);
       break;
     }
 
-    return Token(Token::Tag::IDENTIFIER, a, b);
+    return Token(IDENTIFIER, a, b);
   }
 
-  Token next__stop_illegal_character(Table const &, char const * a, char const * b, char const *, State) {
-    return Token(Token::Tag::ILLEGAL, a, b + 1);
+  Token next__stop_illegal_character(Table &, char * a, char * b, char *, State) {
+    return Token(ILLEGAL, a, b + 1);
   }
 
-  Token next__stop_illegal_token(Table const &, char const * a, char const * b, char const *, State) {
-    return Token(Token::Tag::ILLEGAL, a, b);
+  Token next__stop_illegal_token(Table &, char * a, char * b, char *, State) {
+    return Token(ILLEGAL, a, b);
   }
 
-  Token next__stop_nil(Table const &, char const *, char const * b, char const * c, State) {
+  Token next__stop_nil(Table &, char *, char * b, char * c, State) {
     if (b != c)
-      return Token(Token::Tag::ILLEGAL, b, b + 1);
+      return Token(ILLEGAL, b, b + 1);
 
-    return Token(Token::Tag::STOP, b, b);
+    return Token(STOP, b, b);
   }
 
-  Token next__stop_number(Table const &, char const * a, char const * b, char const *, State) {
-    return Token(Token::Tag::NUMBER, a, b);
+  Token next__stop_number(Table &, char * a, char * b, char *, State) {
+    return Token(NUMBER, a, b);
   }
 
-  Token next__stop_operator(Table const &, char const * a, char const * b, char const *, State) {
+  Token next__stop_operator(Table &, char * a, char * b, char *, State) {
     if (b - a == 1) {
       switch (* a) {
-        case '=': return Token(Token::Tag::ASSIGN, a, b);
-        case '<': return Token(Token::Tag::LT, a, b);
-        case '>': return Token(Token::Tag::GT, a, b);
-        case '+': return Token(Token::Tag::PLUS, a, b);
-        case '-': return Token(Token::Tag::MINUS, a, b);
-        case '*': return Token(Token::Tag::STAR, a, b);
-        case '/': return Token(Token::Tag::SLASH, a, b);
-        case '&': return Token(Token::Tag::AMPERSAND, a, b);
-        case '@': return Token(Token::Tag::AT, a, b);
-        case '!': return Token(Token::Tag::BANG, a, b);
-        case '^': return Token(Token::Tag::CARET, a, b);
-        case '$': return Token(Token::Tag::DOLLAR, a, b);
-        case '%': return Token(Token::Tag::PERCENT, a, b);
-        case '|': return Token(Token::Tag::PIPE, a, b);
-        case '?': return Token(Token::Tag::QUERY, a, b);
-        case '~': return Token(Token::Tag::TILDE, a, b);
+        case '=': return Token(ASSIGN, a, b);
+        case '<': return Token(LT, a, b);
+        case '>': return Token(GT, a, b);
+        case '+': return Token(PLUS, a, b);
+        case '-': return Token(MINUS, a, b);
+        case '*': return Token(STAR, a, b);
+        case '/': return Token(SLASH, a, b);
+        case '&': return Token(AMPERSAND, a, b);
+        case '@': return Token(AT, a, b);
+        case '!': return Token(BANG, a, b);
+        case '^': return Token(CARET, a, b);
+        case '$': return Token(DOLLAR, a, b);
+        case '%': return Token(PERCENT, a, b);
+        case '|': return Token(PIPE, a, b);
+        case '?': return Token(QUERY, a, b);
+        case '~': return Token(TILDE, a, b);
       }
     }
     else if (b - a == 2) {
-      if (!bcmp(a, "==", 2)) return Token(Token::Tag::EQ, a, b);
-      if (!bcmp(a, "!=", 2)) return Token(Token::Tag::NE, a, b);
-      if (!bcmp(a, "<=", 2)) return Token(Token::Tag::LE, a, b);
-      if (!bcmp(a, ">=", 2)) return Token(Token::Tag::GE, a, b);
+      if (!bcmp(a, "==", 2)) return Token(EQ, a, b);
+      if (!bcmp(a, "!=", 2)) return Token(NE, a, b);
+      if (!bcmp(a, "<=", 2)) return Token(LE, a, b);
+      if (!bcmp(a, ">=", 2)) return Token(GE, a, b);
     }
 
-    return Token(Token::Tag::ILLEGAL, a, b);
+    return Token(ILLEGAL, a, b);
   }
 
-  Token next__stop_string(Table const &, char const * a, char const * b, char const *, State) {
-    return Token(Token::Tag::STRING, a, b + 1);
+  Token next__stop_string(Table &, char * a, char * b, char *, State) {
+    return Token(STRING, a, b + 1);
   }
 
-  Token next__stop_punctuation(Table const &, char const * a, char const * b, char const *, State) {
+  Token next__stop_punctuation(Table &, char * a, char * b, char *, State) {
     switch (* a) {
-      case ':': return Token(Token::Tag::COLON, a, b + 1);
-      case ',': return Token(Token::Tag::COMMA, a, b + 1);
-      case ';': return Token(Token::Tag::SEMICOLON, a, b + 1);
-      case '(': return Token(Token::Tag::LPAREN, a, b + 1);
-      case '[': return Token(Token::Tag::LBRACKET, a, b + 1);
-      case '{': return Token(Token::Tag::LBRACE, a, b + 1);
-      case ')': return Token(Token::Tag::RPAREN, a, b + 1);
-      case ']': return Token(Token::Tag::RBRACKET, a, b + 1);
-      case '}': return Token(Token::Tag::RBRACE, a, b + 1);
+      case ':': return Token(COLON, a, b + 1);
+      case ',': return Token(COMMA, a, b + 1);
+      case ';': return Token(SEMICOLON, a, b + 1);
+      case '(': return Token(LPAREN, a, b + 1);
+      case '[': return Token(LBRACKET, a, b + 1);
+      case '{': return Token(LBRACE, a, b + 1);
+      case ')': return Token(RPAREN, a, b + 1);
+      case ']': return Token(RBRACKET, a, b + 1);
+      case '}': return Token(RBRACE, a, b + 1);
     }
 
-    return Token(Token::Tag::ILLEGAL, a, b + 1);
+    return Token(ILLEGAL, a, b + 1);
   }
 
-  Token next__stop_punctuation_no_space(Table const &, char const * a, char const * b, char const *, State) {
+  Token next__stop_punctuation_no_space(Table &, char * a, char * b, char *, State) {
     switch (* a) {
-      case ':': return Token(Token::Tag::COLON, a, b + 1);
-      case ',': return Token(Token::Tag::COMMA, a, b + 1);
-      case ';': return Token(Token::Tag::SEMICOLON, a, b + 1);
-      case '(': return Token(Token::Tag::LPAREN_NOSPACE, a, b + 1);
-      case '[': return Token(Token::Tag::LBRACKET_NOSPACE, a, b + 1);
-      case '{': return Token(Token::Tag::LBRACE, a, b + 1);
-      case ')': return Token(Token::Tag::RPAREN, a, b + 1);
-      case ']': return Token(Token::Tag::RBRACKET, a, b + 1);
-      case '}': return Token(Token::Tag::RBRACE, a, b + 1);
+      case ':': return Token(COLON, a, b + 1);
+      case ',': return Token(COMMA, a, b + 1);
+      case ';': return Token(SEMICOLON, a, b + 1);
+      case '(': return Token(LPAREN_NOSPACE, a, b + 1);
+      case '[': return Token(LBRACKET_NOSPACE, a, b + 1);
+      case '{': return Token(LBRACE, a, b + 1);
+      case ')': return Token(RPAREN, a, b + 1);
+      case ']': return Token(RBRACKET, a, b + 1);
+      case '}': return Token(RBRACE, a, b + 1);
     }
 
-    return Token(Token::Tag::ILLEGAL, a, b + 1);
+    return Token(ILLEGAL, a, b + 1);
   }
 
-  constexpr Table global_table = {
+  Table global_table = {
     to_array(kind::TABLE),
     state::TABLE,
     {
@@ -454,7 +456,7 @@ namespace fae::fe::lex::internal {
 }
 
 namespace fae::fe::lex {
-  Token next(char const * start, char const * stop) {
+  Token next(char * start, char * stop) {
     return internal::next__start(internal::global_table, start, stop);
   }
 }

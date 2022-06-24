@@ -15,39 +15,39 @@ namespace fae::ir::ast {
 
   class Expr {
   public:
-    enum class Tag : u8 {
-      CALL,
-      IF,
-      OP1,
-      OP2,
-      OP3,
-      VARIABLE,
-    };
+    enum class Tag : u8;
 
-    Tag const tag;
+    Tag tag;
 
     explicit Expr(Tag tag) : tag(tag) { }
   };
 
+  enum class Expr::Tag : u8 {
+    CALL,
+    IF,
+    OP1,
+    OP2,
+    OP3,
+    VARIABLE,
+  };
+
+  using enum Expr::Tag;
+
   class Op1 : public Expr {
   public:
-    Name const name;
-    Expr const * const arg;
+    Name name;
+    Expr * arg;
 
-    explicit Op1(Name name, Expr const * arg) :
-      Expr(Expr::Tag::OP1),
-      name(name),
-      arg(arg)
-    { }
+    explicit Op1(Name name, Expr * arg) : Expr(OP1), name(name), arg(arg) { }
   };
 
   class Op2 : public Expr {
   public:
-    Name const name;
-    Expr const * const arg0;
-    Expr const * const arg1;
+    Name name;
+    Expr * arg0;
+    Expr * arg1;
 
-    explicit Op2(Name name, Expr const * arg0, Expr const * arg1) :
+    explicit Op2(Name name, Expr * arg0, Expr * arg1) :
       Expr(Expr::Tag::OP2),
       name(name),
       arg0(arg0),
